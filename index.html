@@ -70,10 +70,15 @@
   }
 
   /* scoreboard header */
-  header{display:flex;justify-content:space-between;align-items:baseline;padding:4px 2px 12px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 12px}
   .brand{font-weight:600;letter-spacing:.09em;text-transform:uppercase;font-size:11px;color:var(--ink2)}
   .heat{font-size:12px;font-weight:500;color:var(--ink2);font-variant-numeric:tabular-nums}
   .heat b{color:var(--ink);font-weight:600}
+  /* language switch — visible on the intro, swaps for the heat counter in-game */
+  .lang{display:flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--card)}
+  .lang button{border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:600;color:var(--ink2);padding:3px 10px;border-radius:999px;cursor:pointer}
+  .lang button.on{background:var(--ink);color:#fff}
+  .lang.gone{display:none}
 
   /* lane progress */
   .lanes{display:flex;gap:4px;margin-bottom:16px}
@@ -218,6 +223,10 @@
 <div class="wrap">
   <header>
     <div class="brand">Suit Duel</div>
+    <div class="lang" id="langSw" aria-label="Language">
+      <button type="button" data-l="pl" onclick="setLang('pl')">PL</button>
+      <button type="button" data-l="en" onclick="setLang('en')">EN</button>
+    </div>
     <div class="heat pre" id="heat"></div>
   </header>
   <div class="lanes pre" id="lanes"></div>
@@ -225,20 +234,20 @@
   <!-- INTRO -->
   <section class="screen on" id="s-intro">
     <div class="intro">
-      <h1>Which suit<br>wins <span>your</span> lane?</h1>
-      <p>I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
+      <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
+      <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
         <span class="chip" id="duelChip">14 duels</span>
-        <span class="chip">Winner stays on</span>
-        <span class="chip">First instinct</span>
-        <span class="chip">~2 min</span>
+        <span class="chip" id="c-winner">Winner stays on</span>
+        <span class="chip" id="c-instinct">First instinct</span>
+        <span class="chip" id="c-time">~2 min</span>
       </div>
-      <p class="sub">Finishers can join the free prototype tester list — we're building this suit together with swimmers.</p>
+      <p class="sub" id="t-sub">Finishers can join the free prototype tester list — we're building this suit together with swimmers.</p>
     </div>
     <div style="flex:1"></div>
     <div class="fan" id="fan" aria-hidden="true"></div>
-    <button class="btn" onclick="startGame()">Start — 2 min</button>
-    <footer>Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</footer>
+    <button class="btn" id="t-start" onclick="startGame()">Start — 2 min</button>
+    <footer id="t-footer">Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</footer>
   </section>
 
   <!-- DUEL -->
@@ -253,21 +262,21 @@
 
   <!-- WORST -->
   <section class="screen" id="s-worst">
-    <div class="bigq">And which one is a <span>hard no</span>?</div>
+    <div class="bigq" id="t-bigq">And which one is a <span>hard no</span>?</div>
     <div class="grid" id="worstGrid"></div>
   </section>
 
   <!-- RESULT -->
   <section class="screen" id="s-result">
     <div class="champ">
-      <div class="crown">Your champion</div>
+      <div class="crown" id="t-crown">Your champion</div>
       <div class="frame" id="champFrame"></div>
       <h2 id="champName"></h2>
-      <p style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
+      <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
     <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
-    <p class="note">Your picks were saved anonymously. The tester list is optional.</p>
-    <button class="btn ghost" onclick="location.reload()">Play again</button>
+    <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
+    <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
 </div>
 
@@ -300,6 +309,79 @@ const SUITS = [
 ];
 /* ========================================== */
 
+/* ---- i18n ---- */
+const I18N = {
+  en: {
+    htmlTitle:"Pick Your Suit",
+    h1:'Which suit<br>wins <span>your</span> lane?',
+    intro:"I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.",
+    duels:"duels", chipWinner:"Winner stays on", chipInstinct:"First instinct", chipTime:"~2 min",
+    sub:"Finishers can join the free prototype tester list — we're building this suit together with swimmers.",
+    start:"Start — 2 min",
+    footer:"Anonymous — your picks aren't linked to you. Judge the suit, not the brand.",
+    tapHint:"Tap the one you'd train in",
+    heat:"Heat", finishLbl:"Finish", defends:"Defends",
+    bigq:'And which one is a <span>hard no</span>?',
+    crown:"Your champion", suit:"Suit",
+    resultP:"Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.",
+    join:"Join the tester list →",
+    note:"Your picks were saved anonymously. The tester list is optional.",
+    again:"Play again"
+  },
+  pl: {
+    htmlTitle:"Wybierz swój strój",
+    h1:'Który strój<br>wygra na <span>Twoim</span> torze?',
+    intro:"Pływałam wyczynowo — dwa treningi dziennie — i skończyłam w wieku 16 lat. Teraz tworzę strój treningowy, jakiego zawsze mi brakowało. Zanim cokolwiek powstanie: pomóż mi zobaczyć, co pływacy naprawdę wybierają.",
+    duels:"pojedynków", chipWinner:"Zwycięzca zostaje", chipInstinct:"Pierwszy odruch", chipTime:"~2 min",
+    sub:"Na koniec możesz dołączyć do listy testerów darmowych prototypów — budujemy ten strój razem z pływakami.",
+    start:"Start — 2 min",
+    footer:"Anonimowo — Twoje wybory nie są z Tobą powiązane. Oceniaj strój, nie markę.",
+    tapHint:"Tapnij ten, w którym chcesz trenować",
+    heat:"Seria", finishLbl:"Meta", defends:"Broni się",
+    bigq:'A który to <span>zdecydowane nie</span>?',
+    crown:"Twój zwycięzca", suit:"Strój",
+    resultP:"Twój wynik zapisany — dziękuję! Wybrani testerzy dostają darmowe prototypy do treningów i współtworzą to, co powstanie. Dołączenie zajmuje 30 sekund.",
+    join:"Dołącz do listy testerów →",
+    note:"Twoje wybory zapisały się anonimowo. Lista testerów jest opcjonalna.",
+    again:"Zagraj jeszcze raz"
+  }
+};
+let LANG = 'en';
+try{
+  const pref = new URLSearchParams(location.search).get('lang')
+    || localStorage.getItem('sd_lang')
+    || navigator.language || 'en';
+  LANG = String(pref).toLowerCase().startsWith('pl') ? 'pl' : 'en';
+}catch(e){}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('sd_lang', l); }catch(e){}
+  applyLang();
+}
+function applyLang(){
+  const s = I18N[LANG];
+  document.documentElement.lang = LANG;
+  document.title = s.htmlTitle;
+  document.getElementById('t-h1').innerHTML = s.h1;
+  document.getElementById('t-intro').textContent = s.intro;
+  document.getElementById('duelChip').textContent = TOTAL+" "+s.duels;
+  document.getElementById('c-winner').textContent = s.chipWinner;
+  document.getElementById('c-instinct').textContent = s.chipInstinct;
+  document.getElementById('c-time').textContent = s.chipTime;
+  document.getElementById('t-sub').textContent = s.sub;
+  document.getElementById('t-start').textContent = s.start;
+  document.getElementById('t-footer').textContent = s.footer;
+  document.getElementById('tapHint').textContent = s.tapHint;
+  document.getElementById('t-bigq').innerHTML = s.bigq;
+  document.getElementById('t-crown').textContent = s.crown;
+  document.getElementById('t-resultP').textContent = s.resultP;
+  document.getElementById('tallyBtn').textContent = s.join;
+  document.getElementById('t-note').textContent = s.note;
+  document.getElementById('t-again').textContent = s.again;
+  document.querySelectorAll('#langSw button').forEach(b=>b.classList.toggle('on', b.dataset.l===LANG));
+  renderLanes(); // refresh Heat/Seria label
+}
+
 const HUES=[196,14,268,152,32,330,88,210,4,240,168,48,300,124,20];
 let order=[], champion=null, challengerIdx=0, duelNo=0, picks=[], streak=0, slots=[null,null], duelShownAt=0;
 const TOTAL = SUITS.length - 1;
@@ -316,13 +398,13 @@ function suitHTML(s,i,withStreak){
          <div>${s.name}</div><div style="font-size:10px;opacity:.6;letter-spacing:.12em">ADD IMAGE URL</div>
        </div>`;
   const tag = `<div class="tag">${s.id}</div>`;
-  const st = withStreak && streak>1 ? `<div class="streak">Defends &times;${streak-1}</div>` : "";
+  const st = withStreak && streak>1 ? `<div class="streak">${I18N[LANG].defends} &times;${streak-1}</div>` : "";
   return inner+tag+st;
 }
 function renderLanes(){
   const l=document.getElementById('lanes'); l.innerHTML="";
   for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='lane'+(i<duelNo?' done':'');l.appendChild(d)}
-  document.getElementById('heat').innerHTML = duelNo<TOTAL?`Heat <b>${String(duelNo+1).padStart(2,'0')}</b>/${TOTAL}`:`Finish`;
+  document.getElementById('heat').innerHTML = duelNo<TOTAL?`${I18N[LANG].heat} <b>${String(duelNo+1).padStart(2,'0')}</b>/${TOTAL}`:I18N[LANG].finishLbl;
 }
 function renderFan(){
   const f=document.getElementById('fan'); f.innerHTML="";
@@ -337,7 +419,8 @@ function startGame(){
   sessionStartedAt = Date.now();
   order = shuffle([...SUITS.keys()]);
   champion = order[0]; challengerIdx = 1; duelNo=0; picks=[]; streak=1;
-  // reveal the scoreboard now that heats are live
+  // reveal the scoreboard now that heats are live; the language is locked in
+  document.getElementById('langSw').classList.add('gone');
   document.getElementById('lanes').classList.remove('pre');
   document.getElementById('heat').classList.remove('pre');
   document.getElementById('tapHint').classList.remove('gone');
@@ -392,21 +475,19 @@ function finish(worstId){
   try{
     fetch(SCRIPT_URL,{
       method:"POST", mode:"no-cors",
-      body:JSON.stringify({champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"})
+      body:JSON.stringify({champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"})
     }).catch(()=>{});
   }catch(e){}
   const frame=document.getElementById('champFrame');
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="${ch.name}">`
     :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}">${ch.name}</div>`;
-  document.getElementById('champName').textContent=ch.name;
-  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(",")});
+  document.getElementById('champName').textContent=I18N[LANG].suit+" "+ch.id.slice(1);
+  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   show('s-result');
 }
-renderLanes();
+applyLang();  // also renders lanes with the right labels
 renderFan();
-// duel count follows the list, so adding 4.jpg later needs no copy edits
-document.getElementById('duelChip').textContent = TOTAL+" duels";
 // warm the cache while the intro is being read, so duels swap without pop-in
 SUITS.forEach(s=>{ if(s.img){ const im=new Image(); im.src=s.img; } });
 </script>
