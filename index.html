@@ -168,12 +168,6 @@
     width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
     font-weight:600;letter-spacing:.01em;font-size:16px;color:var(--ink2);
   }
-  .card .tag{
-    position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.88);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--ink);
-    border:1px solid var(--line);
-    padding:4px 11px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.04em;
-  }
   .card .streak{
     position:absolute;right:12px;top:12px;background:var(--accent);color:#fff;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 14px rgba(94,106,210,.35);
@@ -218,24 +212,29 @@
     box-shadow:0 2px 6px rgba(0,0,0,.05),0 24px 70px rgba(94,106,210,.2);
   }
   .champ .frame img{width:100%;height:100%;object-fit:cover}
-  .champ h2{font-size:24px;font-weight:700;letter-spacing:-.02em}
-
   /* result-screen trait chips — "what made it win", optional multi-select */
   .traits{margin-top:2px}
-  .traitsQ{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px}
-  .traits .chips{margin:0;justify-content:center}
-  .traits .chip{font-family:inherit;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease}
-  .traits .chip.sel{border-color:var(--accent);background:rgba(94,106,210,.1);color:var(--accent)}
+  .traitsQ{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin-bottom:12px}
+  .traits .chips{margin:0;justify-content:center;gap:10px}
+  .traits .chip{
+    font-family:inherit;font-size:14px;padding:10px 16px;border-color:var(--line-strong);
+    cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);
+    transition:border-color .15s ease,background .15s ease,color .15s ease,transform .1s ease;
+  }
+  .traits .chip:active{transform:scale(.96)}
+  .traits .chip.sel{border-color:var(--accent);background:rgba(94,106,210,.1);color:var(--accent);font-weight:600}
 
   .btn{
     display:block;width:100%;padding:15px;border:0;border-radius:12px;margin-top:14px;
     background:var(--accent);color:#fff;font-weight:600;font-size:16px;letter-spacing:-.01em;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 30px rgba(94,106,210,.3);
     font-family:inherit;cursor:pointer;text-align:center;text-decoration:none;
-    transition:transform .12s ease,filter .15s ease;
+    transition:transform .12s ease,filter .15s ease,background .3s ease,color .3s ease,box-shadow .3s ease;
   }
   .btn:active{transform:scale(.985)}
   @media (hover:hover){.btn:hover{filter:brightness(1.06)}}
+  /* tester CTA starts muted; lights up once at least one trait chip is picked */
+  .btn.quiet{background:#E9EAEE;color:var(--ink2);box-shadow:none}
   .btn.ghost{background:transparent;color:var(--ink2);font-weight:500;font-size:14px;padding:10px;box-shadow:none}
   .note{margin-top:10px;text-align:center;color:var(--ink2);font-size:12px;line-height:1.5}
   footer{padding:12px 2px;color:var(--ink3);font-size:11px;text-align:center}
@@ -301,14 +300,13 @@
     <div class="champ">
       <div class="crown" id="t-crown">Your champion</div>
       <div class="frame" id="champFrame"></div>
-      <h2 id="champName"></h2>
       <div class="traits">
         <p class="traitsQ" id="t-traitsQ">What made it win?</p>
         <div class="chips" id="traitChips"></div>
       </div>
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
-    <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
+    <a class="btn quiet" id="tallyBtn" href="#">Join the tester list &rarr;</a>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
     <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
@@ -542,9 +540,8 @@ function suitHTML(s,i,withStreak){
     : `<div class="ph" style="background:${phBg(i)}">
          <div>${s.name}</div><div style="font-size:10px;opacity:.6;letter-spacing:.12em">ADD IMAGE URL</div>
        </div>`;
-  const tag = `<div class="tag">${s.id}</div>`;
   const st = withStreak && streak>1 ? `<div class="streak">${I18N[LANG].defends} &times;${streak-1}</div>` : "";
-  return inner+tag+st;
+  return inner+st; // suit ids stay internal — respondents never see the numbers
 }
 function renderLanes(){
   const l=document.getElementById('lanes'); l.innerHTML="";
@@ -629,6 +626,7 @@ function renderTraits(){
       const url=new URL(a.href);
       url.searchParams.set('traits',[...selTraits].join(","));
       a.href=url.toString();
+      a.classList.toggle('quiet', selTraits.size===0); // CTA lights up with the first pick
     };
     box.appendChild(b);
   });
@@ -658,9 +656,8 @@ function finish(worstId){
     }).catch(()=>{});
   }catch(e){}
   const frame=document.getElementById('champFrame');
-  frame.innerHTML = ch.img?`<img src="${ch.img}" alt="${ch.name}">`
-    :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}">${ch.name}</div>`;
-  document.getElementById('champName').textContent=I18N[LANG].suit+" "+ch.id.slice(1);
+  frame.innerHTML = ch.img?`<img src="${ch.img}" alt="">`
+    :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}"></div>`;
   const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC, sid:SID});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   renderTraits();
