@@ -277,14 +277,14 @@ const SRC = new URLSearchParams(location.search).get("src") || "direct";
 let sessionStartedAt = 0;
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKP-Qm3_8KXUABrZLHpNZ-XIFRihfveZm6dUa5cVZbE7QujQZWDx0q1-RIPEwp4DJE/exec";     // <- Apps Script web app URL (auto-logs every result)
-/* IDs stay tied to the file numbers on purpose: S12 is always 12.jpg.
-   Adding the missing 4.jpg later must not renumber the others, or results
-   logged before and after would no longer be comparable. */
+/* IDs stay tied to the file numbers on purpose: S12 is always 12.jpg,
+   so adding a suit later never renumbers the others and results logged
+   before and after stay comparable. */
 const SUITS = [
   {id:"S01", name:"Suit 01", img:"1.jpg"},
   {id:"S02", name:"Suit 02", img:"2.jpg"},
   {id:"S03", name:"Suit 03", img:"3.jpg"},
-  /* {id:"S04", name:"Suit 04", img:"4.jpg"},  <- drop 4.jpg in the folder and uncomment */
+  {id:"S04", name:"Suit 04", img:"4.jpg"},
   {id:"S05", name:"Suit 05", img:"5.jpg"},
   {id:"S06", name:"Suit 06", img:"6.jpg"},
   {id:"S07", name:"Suit 07", img:"7.jpg"},
@@ -296,6 +296,7 @@ const SUITS = [
   {id:"S13", name:"Suit 13", img:"13.jpg"},
   {id:"S14", name:"Suit 14", img:"14.jpg"},
   {id:"S15", name:"Suit 15", img:"15.jpg"},
+  {id:"S16", name:"Suit 16", img:"16.jpg"},
 ];
 /* ========================================== */
 
