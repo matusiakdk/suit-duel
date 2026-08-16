@@ -302,11 +302,11 @@
       <div class="crown" id="t-crown">Your champion</div>
       <div class="frame" id="champFrame"></div>
       <h2 id="champName"></h2>
-      <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
       <div class="traits">
         <p class="traitsQ" id="t-traitsQ">What made it win?</p>
         <div class="chips" id="traitChips"></div>
       </div>
+      <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
     <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
@@ -365,7 +365,7 @@ const I18N = {
     again:"Play again",
     privacy:"Privacy",
     traitsQ:"What made it win?",
-    traits:{colour:"Colour",print:"Print",back:"Back cut",straps:"Straps",tie:"Tie-back",leg:"Leg cut",coverage:"Coverage"}
+    traits:{colour:"Colour",print:"Print",back:"Back cut",straps:"Straps",tie:"Tie-back"}
   },
   pl: {
     htmlTitle:"Wybierz swój strój",
@@ -385,7 +385,7 @@ const I18N = {
     again:"Zagraj jeszcze raz",
     privacy:"Prywatność",
     traitsQ:"Co Cię przekonało?",
-    traits:{colour:"Kolor",print:"Wzór",back:"Plecy",straps:"Ramiączka",tie:"Wiązanie",leg:"Nogawka",coverage:"Zakrycie"}
+    traits:{colour:"Kolor",print:"Wzór",back:"Plecy",straps:"Ramiączka",tie:"Wiązanie na plecach"}
   },
   de: {
     htmlTitle:"Wähl deinen Badeanzug",
@@ -405,7 +405,7 @@ const I18N = {
     again:"Nochmal spielen",
     privacy:"Datenschutz",
     traitsQ:"Was hat überzeugt?",
-    traits:{colour:"Farbe",print:"Muster",back:"Rückenschnitt",straps:"Träger",tie:"Schnürung",leg:"Beinausschnitt",coverage:"Bedeckung"}
+    traits:{colour:"Farbe",print:"Muster",back:"Rückenschnitt",straps:"Träger",tie:"Schnürung am Rücken"}
   },
   es: {
     htmlTitle:"Elige tu bañador",
@@ -425,7 +425,7 @@ const I18N = {
     again:"Jugar otra vez",
     privacy:"Privacidad",
     traitsQ:"¿Qué te convenció?",
-    traits:{colour:"Color",print:"Estampado",back:"Espalda",straps:"Tirantes",tie:"Lazada",leg:"Corte de pierna",coverage:"Cobertura"}
+    traits:{colour:"Color",print:"Estampado",back:"Espalda",straps:"Tirantes",tie:"Lazada en la espalda"}
   },
   fr: {
     htmlTitle:"Choisis ton maillot",
@@ -445,7 +445,7 @@ const I18N = {
     again:"Rejouer",
     privacy:"Confidentialité",
     traitsQ:"Qu’est-ce qui a fait la différence ?",
-    traits:{colour:"Couleur",print:"Imprimé",back:"Dos",straps:"Bretelles",tie:"Laçage",leg:"Échancrure",coverage:"Couvrance"}
+    traits:{colour:"Couleur",print:"Imprimé",back:"Dos",straps:"Bretelles",tie:"Laçage dans le dos"}
   },
   it: {
     htmlTitle:"Scegli il tuo costume",
@@ -465,7 +465,7 @@ const I18N = {
     again:"Gioca di nuovo",
     privacy:"Privacy",
     traitsQ:"Cosa ti ha convinto?",
-    traits:{colour:"Colore",print:"Fantasia",back:"Schiena",straps:"Spalline",tie:"Laccetti",leg:"Sgambatura",coverage:"Copertura"}
+    traits:{colour:"Colore",print:"Fantasia",back:"Schiena",straps:"Spalline",tie:"Laccetti sulla schiena"}
   },
   pt: {
     htmlTitle:"Escolha o seu maiô",
@@ -485,7 +485,7 @@ const I18N = {
     again:"Jogar de novo",
     privacy:"Privacidade",
     traitsQ:"O que te convenceu?",
-    traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração",leg:"Cavado",coverage:"Cobertura"}
+    traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração nas costas"}
   }
 };
 let LANG = 'en';
@@ -613,7 +613,7 @@ function renderWorst(){
   });
 }
 /* ---- "what made it win" trait chips (optional, multi-select) ---- */
-const TRAITS=["colour","print","back","straps","tie","leg","coverage"];
+const TRAITS=["colour","print","back","straps","tie"];
 const selTraits=new Set();
 let traitsSent=false;
 function renderTraits(){
