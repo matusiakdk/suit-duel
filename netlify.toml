@@ -1,0 +1,3 @@
+# keep deployed files byte-identical to the repo (no Pretty-URL rewriting)
+[build.processing]
+  skip_processing = true
