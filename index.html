@@ -599,7 +599,7 @@ function finish(worstId){
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="${ch.name}">`
     :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}">${ch.name}</div>`;
   document.getElementById('champName').textContent=I18N[LANG].suit+" "+ch.id.slice(1);
-  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG});
+  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   show('s-result');
 }
