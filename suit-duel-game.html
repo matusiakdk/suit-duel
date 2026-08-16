@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pick Your Suit — 14 Quick Duels</title>
+<!--
+  ============================================================
+  SUIT DUEL — winner-stays game (single file, no backend)
+  HOW TO USE:
+  1. Replace img:"" below with your image URLs (flat-lay shots,
+     same background, logos masked). Empty img = auto placeholder.
+  2. Create a Tally form with HIDDEN FIELDS named exactly:
+     champion, worst, picks  (+ your email question etc.)
+     Tally: Insert block > Hidden fields.
+  3. Paste your Tally link into TALLY_URL below.
+  4. Host: drag this file into Netlify Drop / Vercel / GitHub Pages.
+  ============================================================
+-->
+<style>
+  :root{
+    --pool:#0A2239;      /* deep pool navy */
+    --aqua:#2EC5CE;      /* lane-rope turquoise */
+    --coral:#FF6A4D;     /* lane-rope coral */
+    --tile:#F4F9FA;      /* off-white tile */
+    --steel:#7C93A6;     /* muted caption */
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--pool);
+    color:var(--tile);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100dvh;overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:520px;padding:16px;display:flex;flex-direction:column;min-height:100dvh}
+
+  /* scoreboard header */
+  header{display:flex;justify-content:space-between;align-items:baseline;padding:4px 2px 10px}
+  .brand{font-weight:900;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--aqua)}
+  .heat{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--steel)}
+  .heat b{color:var(--tile)}
+
+  /* lane progress */
+  .lanes{display:flex;gap:3px;margin-bottom:14px}
+  .lane{flex:1;height:4px;background:#16324a;border-radius:2px;transition:background .25s}
+  .lane.done{background:var(--aqua)}
+  /* hidden until the game starts */
+  .lanes.pre,.heat.pre{display:none}
+
+  /* screens */
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.on{display:flex}
+
+  /* intro */
+  .intro h1{font-size:clamp(30px,9vw,44px);line-height:1.02;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;margin:8vh 0 16px}
+  .intro h1 span{color:var(--aqua)}
+  .intro p{color:var(--steel);font-size:16px;line-height:1.55;max-width:42ch}
+  .intro .rule{margin:22px 0;border:0;border-top:2px dashed #1d3c57}
+  .hint{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--coral);letter-spacing:.06em;text-transform:uppercase}
+  .sub{margin-top:8px;font-size:13px;line-height:1.45;color:var(--steel)}
+
+  /* fanned preview of the first few suits (decorative) */
+  .fan{
+    display:flex;justify-content:center;align-items:flex-end;
+    margin:18px 0 2px;pointer-events:none;user-select:none;
+  }
+  .fan .mini{
+    width:clamp(50px,15vw,72px);aspect-ratio:3/4;margin:0 -7px;
+    border-radius:9px;overflow:hidden;background:#10314c;border:2px solid #16324a;
+    box-shadow:0 8px 16px rgba(0,0,0,.3);
+  }
+  .fan .mini img{width:100%;height:100%;object-fit:cover;display:block}
+  .fan .mini .ph{
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:11px;letter-spacing:.05em;
+  }
+  .fan .mini:nth-child(1){transform:rotate(-9deg) translateY(7px)}
+  .fan .mini:nth-child(2){transform:rotate(-4.5deg) translateY(1px)}
+  .fan .mini:nth-child(3){transform:translateY(-4px);z-index:1}
+  .fan .mini:nth-child(4){transform:rotate(4.5deg) translateY(1px)}
+  .fan .mini:nth-child(5){transform:rotate(9deg) translateY(7px)}
+
+  /* duel */
+  .duel{flex:1;display:flex;flex-direction:column;gap:0;justify-content:center;position:relative}
+  /* one-time first-duel coach mark */
+  .tapHint{
+    position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:3;
+    background:rgba(10,34,57,.92);border:1px solid var(--aqua);color:var(--tile);
+    padding:9px 14px;border-radius:999px;white-space:nowrap;pointer-events:none;
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);transition:opacity .35s ease;
+  }
+  .tapHint.gone{opacity:0}
+  .card{
+    position:relative;flex:1;max-height:37dvh;border-radius:14px;overflow:hidden;
+    background:#10314c;cursor:pointer;border:2px solid transparent;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .12s ease,border-color .12s;
+  }
+  .card:active{transform:scale(.975)}
+  .card img{width:100%;height:100%;object-fit:cover;display:block}
+  .card .ph{ /* placeholder when no image yet */
+    width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:20px;
+  }
+  .card .tag{
+    position:absolute;left:10px;bottom:10px;background:rgba(10,34,57,.82);
+    padding:4px 10px;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.06em;
+  }
+  .card .streak{
+    position:absolute;right:10px;top:10px;background:var(--coral);color:#fff;
+    padding:4px 9px;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:700;
+  }
+  /* lane rope divider */
+  .rope{
+    height:18px;display:flex;align-items:center;justify-content:center;position:relative;margin:6px 0;
+  }
+  .rope .beads{
+    position:absolute;left:0;right:0;top:50%;height:6px;transform:translateY(-50%);border-radius:3px;
+    background:repeating-linear-gradient(90deg,var(--aqua) 0 14px,var(--coral) 14px 28px);
+    opacity:.85;
+  }
+  .rope .vs{
+    position:relative;background:var(--tile);color:var(--pool);font-weight:900;font-size:13px;
+    padding:3px 12px;border-radius:999px;letter-spacing:.12em;
+  }
+  .slide-in{animation:slidein .22s ease}
+  @keyframes slidein{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}
+  @media (prefers-reduced-motion: reduce){.slide-in{animation:none}.card:active{transform:none}.tapHint{transition:none}}
+
+  /* grid (worst pick + reveal) */
+  .bigq{font-size:clamp(22px,6.4vw,30px);font-weight:900;text-transform:uppercase;line-height:1.05;margin:14px 0 14px}
+  .bigq span{color:var(--coral)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;overflow-y:auto;padding-bottom:12px}
+  .cell{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#10314c;cursor:pointer;border:2px solid transparent}
+  .cell img{width:100%;height:100%;object-fit:cover}
+  .cell .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;letter-spacing:.05em}
+  .cell:active{border-color:var(--coral)}
+
+  /* champion reveal */
+  .champ{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+  .champ .crown{font-family:ui-monospace,Menlo,monospace;color:var(--aqua);letter-spacing:.2em;text-transform:uppercase;font-size:13px}
+  .champ .frame{width:min(64vw,300px);aspect-ratio:3/4;border-radius:16px;overflow:hidden;border:3px solid var(--aqua);background:#10314c}
+  .champ .frame img{width:100%;height:100%;object-fit:cover}
+  .champ h2{font-size:26px;font-weight:900;text-transform:uppercase}
+
+  .btn{
+    display:block;width:100%;padding:16px;border:0;border-radius:12px;margin-top:14px;
+    background:var(--aqua);color:var(--pool);font-weight:900;font-size:16px;text-transform:uppercase;
+    letter-spacing:.06em;cursor:pointer;text-align:center;text-decoration:none;
+  }
+  .btn.ghost{background:transparent;color:var(--steel);font-weight:600;text-transform:none;letter-spacing:0;font-size:14px;padding:10px}
+  .note{margin-top:10px;text-align:center;color:var(--steel);font-size:12px;line-height:1.45}
+  footer{padding:10px 2px;color:#3d5a75;font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Suit Duel</div>
+    <div class="heat pre" id="heat"></div>
+  </header>
+  <div class="lanes pre" id="lanes"></div>
+
+  <!-- INTRO -->
+  <section class="screen on" id="s-intro">
+    <div class="intro">
+      <h1>Which suit<br>wins <span>your</span> lane?</h1>
+      <p>I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
+      <hr class="rule">
+      <p class="hint">14 quick duels &middot; winner stays on &middot; first instinct only</p>
+      <p class="sub">Finishers can join the free prototype tester list — we're building this suit together with swimmers.</p>
+    </div>
+    <div style="flex:1"></div>
+    <div class="fan" id="fan" aria-hidden="true"></div>
+    <button class="btn" onclick="startGame()">Start — 2 min</button>
+    <footer>Anonymous. No logos shown — judge the design, not the brand.</footer>
+  </section>
+
+  <!-- DUEL -->
+  <section class="screen" id="s-duel">
+    <div class="duel">
+      <div class="card" id="cardA" onclick="pick(0)"></div>
+      <div class="rope"><div class="beads"></div><div class="vs">VS</div></div>
+      <div class="card" id="cardB" onclick="pick(1)"></div>
+      <div class="tapHint" id="tapHint">Tap the one you'd train in</div>
+    </div>
+  </section>
+
+  <!-- WORST -->
+  <section class="screen" id="s-worst">
+    <div class="bigq">And which one is a <span>hard no</span>?</div>
+    <div class="grid" id="worstGrid"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="s-result">
+    <div class="champ">
+      <div class="crown">&#9733; Your champion &#9733;</div>
+      <div class="frame" id="champFrame"></div>
+      <h2 id="champName"></h2>
+      <p style="color:var(--steel);font-size:15px;max-width:36ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
+    </div>
+    <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
+    <p class="note">Your picks were saved anonymously. The tester list is optional.</p>
+    <button class="btn ghost" onclick="location.reload()">Play again</button>
+  </section>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const SRC = new URLSearchParams(location.search).get("src") || "direct";
+let sessionStartedAt = 0;
+const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKP-Qm3_8KXUABrZLHpNZ-XIFRihfveZm6dUa5cVZbE7QujQZWDx0q1-RIPEwp4DJE/exec";     // <- Apps Script web app URL (auto-logs every result)
+const SUITS = [
+  {id:"S01", name:"Suit 01", img:""},
+  {id:"S02", name:"Suit 02", img:""},
+  {id:"S03", name:"Suit 03", img:""},
+  {id:"S04", name:"Suit 04", img:""},
+  {id:"S05", name:"Suit 05", img:""},
+  {id:"S06", name:"Suit 06", img:""},
+  {id:"S07", name:"Suit 07", img:""},
+  {id:"S08", name:"Suit 08", img:""},
+  {id:"S09", name:"Suit 09", img:""},
+  {id:"S10", name:"Suit 10", img:""},
+  {id:"S11", name:"Suit 11", img:""},
+  {id:"S12", name:"Suit 12", img:""},
+  {id:"S13", name:"Suit 13", img:""},
+  {id:"S14", name:"Suit 14", img:""},
+  {id:"S15", name:"Suit 15", img:""},
+];
+/* ========================================== */
+
+const HUES=[196,14,268,152,32,330,88,210,4,240,168,48,300,124,20];
+let order=[], champion=null, challengerIdx=0, duelNo=0, picks=[], streak=0, slots=[null,null], duelShownAt=0;
+const TOTAL = SUITS.length - 1;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
+function suitHTML(s,i,withStreak){
+  const inner = s.img
+    ? `<img src="${s.img}" alt="${s.name}">`
+    : `<div class="ph" style="background:linear-gradient(160deg,hsl(${HUES[i%HUES.length]} 45% 38%),hsl(${HUES[i%HUES.length]} 55% 22%))">
+         <div>${s.name}</div><div style="font-size:11px;opacity:.7;letter-spacing:.14em">ADD IMAGE URL</div>
+       </div>`;
+  const tag = `<div class="tag">${s.id}</div>`;
+  const st = withStreak && streak>1 ? `<div class="streak">DEFENDS &times;${streak-1}</div>` : "";
+  return inner+tag+st;
+}
+function renderLanes(){
+  const l=document.getElementById('lanes'); l.innerHTML="";
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='lane'+(i<duelNo?' done':'');l.appendChild(d)}
+  document.getElementById('heat').innerHTML = duelNo<TOTAL?`HEAT <b>${String(duelNo+1).padStart(2,'0')}</b>/${TOTAL}`:`FINISH`;
+}
+function renderFan(){
+  const f=document.getElementById('fan'); f.innerHTML="";
+  SUITS.slice(0,5).forEach((s,i)=>{
+    const m=document.createElement('div'); m.className='mini';
+    m.innerHTML = s.img?`<img src="${s.img}" alt="">`
+      :`<div class="ph" style="background:linear-gradient(160deg,hsl(${HUES[i%HUES.length]} 45% 38%),hsl(${HUES[i%HUES.length]} 55% 22%))">${s.id}</div>`;
+    f.appendChild(m);
+  });
+}
+function startGame(){
+  order = shuffle([...SUITS.keys()]);
+  champion = order[0]; challengerIdx = 1; duelNo=0; picks=[]; streak=1;
+  // reveal the scoreboard now that heats are live
+  document.getElementById('lanes').classList.remove('pre');
+  document.getElementById('heat').classList.remove('pre');
+  document.getElementById('tapHint').classList.remove('gone');
+  renderDuel();
+  show('s-duel');
+}
+function renderDuel(){
+  renderLanes();
+  const challenger = order[challengerIdx];
+  // random side each duel to kill position bias
+  const champSlot = Math.random()<0.5?0:1;
+  slots=[]; slots[champSlot]=champion; slots[1-champSlot]=challenger;
+  const A=document.getElementById('cardA'), B=document.getElementById('cardB');
+  A.innerHTML=suitHTML(SUITS[slots[0]],slots[0],slots[0]===champion);
+  B.innerHTML=suitHTML(SUITS[slots[1]],slots[1],slots[1]===champion);
+  const chCard = slots[0]===challenger?A:B;
+  chCard.classList.remove('slide-in'); void chCard.offsetWidth; chCard.classList.add('slide-in');
+  duelShownAt = Date.now();
+}
+function pick(slot){
+  document.getElementById('tapHint').classList.add('gone'); // first tap kills the coach mark
+  const winner=slots[slot], loser=slots[1-slot];
+  picks.push(
+    SUITS[winner].id+">"+SUITS[loser].id
+    +"|"+(slot===0?"T":"B")            // which card was tapped: top / bottom
+    +"|"+(winner===champion?"C":"N")   // defending champion held / new challenger won
+    +"|"+(Date.now()-duelShownAt)      // ms from render to decision
+  );
+  streak = (winner===champion)? streak+1 : 1;
+  champion = winner;
+  duelNo++; challengerIdx++;
+  if(challengerIdx < order.length){ renderDuel(); }
+  else { renderLanes(); renderWorst(); show('s-worst'); }
+}
+function renderWorst(){
+  const g=document.getElementById('worstGrid'); g.innerHTML="";
+  SUITS.forEach((s,i)=>{
+    const c=document.createElement('div'); c.className='cell';
+    c.innerHTML = s.img?`<img src="${s.img}" alt="${s.name}">`
+      :`<div class="ph" style="background:linear-gradient(160deg,hsl(${HUES[i%HUES.length]} 45% 38%),hsl(${HUES[i%HUES.length]} 55% 22%))">${s.id}</div>`;
+    c.onclick=()=>finish(s.id);
+    g.appendChild(c);
+  });
+}
+function finish(worstId){
+  const ch=SUITS[champion];
+  // fire-and-forget log — never blocks or breaks the reveal
+  try{
+    fetch(SCRIPT_URL,{
+      method:"POST", mode:"no-cors",
+      body:JSON.stringify({champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"})
+    }).catch(()=>{});
+  }catch(e){}
+  const frame=document.getElementById('champFrame');
+  frame.innerHTML = ch.img?`<img src="${ch.img}" alt="${ch.name}">`
+    :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;background:linear-gradient(160deg,hsl(${HUES[champion%HUES.length]} 45% 38%),hsl(${HUES[champion%HUES.length]} 55% 22%))">${ch.name}</div>`;
+  document.getElementById('champName').textContent=ch.name;
+  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(",")});
+  document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
+  show('s-result');
+}
+renderLanes();
+renderFan();
+</script>
+</body>
+</html>
