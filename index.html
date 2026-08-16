@@ -536,7 +536,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
 function suitHTML(s,i,withStreak){
   const inner = s.img
-    ? `<img src="${s.img}" alt="${s.name}">`
+    ? `<img src="${s.img}" alt="">`
     : `<div class="ph" style="background:${phBg(i)}">
          <div>${s.name}</div><div style="font-size:10px;opacity:.6;letter-spacing:.12em">ADD IMAGE URL</div>
        </div>`;
@@ -603,7 +603,7 @@ function renderWorst(){
   SUITS.forEach((s,i)=>{
     if(i===champion) return; // your champion can't also be the hard no
     const c=document.createElement('div'); c.className='cell';
-    c.innerHTML = s.img?`<img src="${s.img}" alt="${s.name}">`
+    c.innerHTML = s.img?`<img src="${s.img}" alt="">`
       :`<div class="ph" style="background:${phBg(i)}">${s.id}</div>`;
     c.onclick=()=>finish(s.id);
     g.appendChild(c);
