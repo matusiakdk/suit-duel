@@ -75,10 +75,15 @@
   .heat{font-size:12px;font-weight:500;color:var(--ink2);font-variant-numeric:tabular-nums}
   .heat b{color:var(--ink);font-weight:600}
   /* language switch — visible on the intro, swaps for the heat counter in-game */
-  .lang{display:flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--card)}
-  .lang button{border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:600;color:var(--ink2);padding:3px 10px;border-radius:999px;cursor:pointer}
-  .lang button.on{background:var(--ink);color:#fff}
   .lang.gone{display:none}
+  .lang select{
+    appearance:none;-webkit-appearance:none;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    font-family:inherit;font-size:12px;font-weight:500;
+    padding:5px 24px 5px 12px;border-radius:999px;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' fill='none' stroke='%236B6F76' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
 
   /* lane progress */
   .lanes{display:flex;gap:4px;margin-bottom:16px}
@@ -223,9 +228,16 @@
 <div class="wrap">
   <header>
     <div class="brand">Suit Duel</div>
-    <div class="lang" id="langSw" aria-label="Language">
-      <button type="button" data-l="pl" onclick="setLang('pl')">PL</button>
-      <button type="button" data-l="en" onclick="setLang('en')">EN</button>
+    <div class="lang" id="langSw">
+      <select id="langSel" aria-label="Language" onchange="setLang(this.value)">
+        <option value="pl">Polski</option>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+        <option value="pt">Português</option>
+      </select>
     </div>
     <div class="heat pre" id="heat"></div>
   </header>
@@ -344,6 +356,91 @@ const I18N = {
     join:"Dołącz do listy testerów →",
     note:"Twoje wybory zapisały się anonimowo. Lista testerów jest opcjonalna.",
     again:"Zagraj jeszcze raz"
+  },
+  de: {
+    htmlTitle:"Wähl deinen Badeanzug",
+    h1:'Welcher Anzug<br>gewinnt auf <span>deiner</span> Bahn?',
+    intro:"Ich bin leistungsmäßig geschwommen — zwei Einheiten am Tag — und habe mit 16 aufgehört. Jetzt entwickle ich den Badeanzug fürs Training, den ich mir immer gewünscht habe. Bevor etwas produziert wird: Hilf mir zu sehen, was Schwimmerinnen und Schwimmer wirklich wählen.",
+    duels:"Duelle", chipWinner:"Sieger bleibt", chipInstinct:"Erster Instinkt", chipTime:"~2 Min.",
+    sub:"Am Ende kannst du dich in die Liste der Prototyp-Tester eintragen — wir entwickeln diesen Anzug gemeinsam mit Schwimmern.",
+    start:"Start — 2 Min.",
+    footer:"Anonym — deine Auswahl wird nicht mit dir verknüpft. Bewerte den Anzug, nicht die Marke.",
+    tapHint:"Tippe auf den, in dem du trainieren würdest",
+    heat:"Lauf", finishLbl:"Ziel", defends:"Verteidigt",
+    bigq:'Und welcher ist ein klares <span>Nein</span>?',
+    crown:"Dein Champion", suit:"Anzug",
+    resultP:"Dein Ergebnis ist gespeichert — danke! Ausgewählte Tester bekommen kostenlose Prototypen zum Trainieren und gestalten mit, was produziert wird. Die Anmeldung dauert 30 Sekunden.",
+    join:"Zur Tester-Liste →",
+    note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
+    again:"Nochmal spielen"
+  },
+  es: {
+    htmlTitle:"Elige tu bañador",
+    h1:'¿Qué bañador<br>gana en <span>tu</span> calle?',
+    intro:"Nadé de forma competitiva — dos sesiones al día — y lo dejé a los 16. Ahora estoy creando el bañador de entrenamiento que siempre quise tener. Antes de fabricar nada: ayúdame a ver qué eligen de verdad quienes nadan.",
+    duels:"duelos", chipWinner:"El ganador se queda", chipInstinct:"Primer instinto", chipTime:"~2 min",
+    sub:"Al terminar puedes unirte a la lista de testers de prototipos gratis — estamos creando este bañador junto a la comunidad nadadora.",
+    start:"Empezar — 2 min",
+    footer:"Anónimo — tus elecciones no se vinculan contigo. Juzga el bañador, no la marca.",
+    tapHint:"Toca el que usarías para entrenar",
+    heat:"Serie", finishLbl:"Meta", defends:"Defiende",
+    bigq:'¿Y cuál es un <span>no rotundo</span>?',
+    crown:"Tu campeón", suit:"Bañador",
+    resultP:"Tu resultado está guardado — ¡gracias! Los testers seleccionados reciben prototipos gratis para entrenar y ayudan a definir lo que se fabricará. Unirse lleva 30 segundos.",
+    join:"Únete a la lista de testers →",
+    note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
+    again:"Jugar otra vez"
+  },
+  fr: {
+    htmlTitle:"Choisis ton maillot",
+    h1:'Quel maillot<br>gagne dans <span>ton</span> couloir&nbsp;?',
+    intro:"J'ai nagé en compétition — deux séances par jour — et j'ai arrêté à 16 ans. Aujourd'hui, je crée le maillot d'entraînement que j'aurais toujours voulu avoir. Avant de produire quoi que ce soit : aide-moi à voir ce que les nageurs choisissent vraiment.",
+    duels:"duels", chipWinner:"Le gagnant reste", chipInstinct:"Premier instinct", chipTime:"~2 min",
+    sub:"À la fin, tu peux rejoindre la liste des testeurs de prototypes gratuits — nous créons ce maillot avec les nageurs.",
+    start:"Commencer — 2 min",
+    footer:"Anonyme — tes choix ne sont pas liés à toi. Juge le maillot, pas la marque.",
+    tapHint:"Touche celui avec lequel tu t'entraînerais",
+    heat:"Série", finishLbl:"Arrivée", defends:"Défend",
+    bigq:'Et lequel est un <span>non catégorique</span>&nbsp;?',
+    crown:"Ton champion", suit:"Maillot",
+    resultP:"Ton résultat est enregistré — merci ! Les testeurs sélectionnés reçoivent des prototypes gratuits pour s'entraîner et participent à définir ce qui sera produit. Rejoindre prend 30 secondes.",
+    join:"Rejoindre la liste des testeurs →",
+    note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
+    again:"Rejouer"
+  },
+  it: {
+    htmlTitle:"Scegli il tuo costume",
+    h1:'Quale costume<br>vince nella <span>tua</span> corsia?',
+    intro:"Ho nuotato a livello agonistico — due allenamenti al giorno — e ho smesso a 16 anni. Ora sto creando il costume da allenamento che avrei sempre voluto. Prima di produrre qualsiasi cosa: aiutami a vedere cosa scelgono davvero i nuotatori.",
+    duels:"duelli", chipWinner:"Chi vince resta", chipInstinct:"Primo istinto", chipTime:"~2 min",
+    sub:"Alla fine puoi unirti alla lista dei tester dei prototipi gratuiti — stiamo creando questo costume insieme ai nuotatori.",
+    start:"Inizia — 2 min",
+    footer:"Anonimo — le tue scelte non sono collegate a te. Giudica il costume, non il marchio.",
+    tapHint:"Tocca quello con cui ti alleneresti",
+    heat:"Batteria", finishLbl:"Arrivo", defends:"Difende",
+    bigq:'E quale è un <span>no deciso</span>?',
+    crown:"Il tuo campione", suit:"Costume",
+    resultP:"Il tuo risultato è salvato — grazie! I tester selezionati ricevono prototipi gratuiti per allenarsi e aiutano a definire cosa verrà prodotto. Unirsi richiede 30 secondi.",
+    join:"Unisciti alla lista dei tester →",
+    note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
+    again:"Gioca di nuovo"
+  },
+  pt: {
+    htmlTitle:"Escolha o seu maiô",
+    h1:'Qual maiô<br>vence na <span>sua</span> raia?',
+    intro:"Nadei competitivamente — dois treinos por dia — e parei aos 16. Agora estou criando o maiô de treino que sempre quis ter. Antes de produzir qualquer coisa: me ajude a ver o que nadadores realmente escolhem.",
+    duels:"duelos", chipWinner:"Quem vence fica", chipInstinct:"Primeiro instinto", chipTime:"~2 min",
+    sub:"No final você pode entrar na lista de testers de protótipos gratuitos — estamos criando este maiô junto com nadadores.",
+    start:"Começar — 2 min",
+    footer:"Anônimo — suas escolhas não são vinculadas a você. Julgue o maiô, não a marca.",
+    tapHint:"Toque no que você usaria para treinar",
+    heat:"Série", finishLbl:"Chegada", defends:"Defende",
+    bigq:'E qual é um <span>não definitivo</span>?',
+    crown:"Seu campeão", suit:"Maiô",
+    resultP:"Seu resultado foi salvo — obrigada! Os testers selecionados recebem protótipos gratuitos para treinar e ajudam a definir o que será produzido. Entrar leva 30 segundos.",
+    join:"Entrar na lista de testers →",
+    note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
+    again:"Jogar de novo"
   }
 };
 let LANG = 'en';
@@ -351,7 +448,8 @@ try{
   const pref = new URLSearchParams(location.search).get('lang')
     || localStorage.getItem('sd_lang')
     || navigator.language || 'en';
-  LANG = String(pref).toLowerCase().startsWith('pl') ? 'pl' : 'en';
+  const code = String(pref).toLowerCase().slice(0,2);
+  LANG = I18N[code] ? code : 'en';
 }catch(e){}
 function setLang(l){
   LANG = l;
@@ -378,7 +476,7 @@ function applyLang(){
   document.getElementById('tallyBtn').textContent = s.join;
   document.getElementById('t-note').textContent = s.note;
   document.getElementById('t-again').textContent = s.again;
-  document.querySelectorAll('#langSw button').forEach(b=>b.classList.toggle('on', b.dataset.l===LANG));
+  document.getElementById('langSel').value = LANG;
   renderLanes(); // refresh Heat/Seria label
 }
 
