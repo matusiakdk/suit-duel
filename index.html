@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F5F5F7">
 <title>Pick Your Suit — 14 Quick Duels</title>
+<meta name="description" content="14 quick duels, winner stays on. Tap the suit you'd train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
+<meta property="og:title" content="Which suit wins your lane?">
+<meta property="og:description" content="14 quick duels · winner stays on · 2 minutes. Help shape a new training suit for swimmers.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <!--
   ============================================================
   SUIT DUEL — winner-stays game (single file, no backend)
@@ -311,6 +316,7 @@ function renderDuel(){
   duelShownAt = Date.now();
 }
 function pick(slot){
+  if(Date.now()-duelShownAt < 200) return; // ignore ghost double-taps carrying over from the previous duel
   document.getElementById('tapHint').classList.add('gone'); // first tap kills the coach mark
   const winner=slots[slot], loser=slots[1-slot];
   picks.push(
@@ -328,6 +334,7 @@ function pick(slot){
 function renderWorst(){
   const g=document.getElementById('worstGrid'); g.innerHTML="";
   SUITS.forEach((s,i)=>{
+    if(i===champion) return; // your champion can't also be the hard no
     const c=document.createElement('div'); c.className='cell';
     c.innerHTML = s.img?`<img src="${s.img}" alt="${s.name}">`
       :`<div class="ph" style="background:${phBg(i)}">${s.id}</div>`;
@@ -335,7 +342,9 @@ function renderWorst(){
     g.appendChild(c);
   });
 }
+let finished=false;
 function finish(worstId){
+  if(finished) return; finished=true; // double-tap on the grid must not log twice
   const ch=SUITS[champion];
   // fire-and-forget log — never blocks or breaks the reveal
   try{
