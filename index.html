@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F8F9">
-<title>Pick Your Suit — 14 Quick Duels</title>
-<meta name="description" content="14 quick duels, winner stays on. Tap the suit you'd train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
+<title>Pick Your Suit</title>
+<meta name="description" content="Quick duels, winner stays on. Tap the suit you'd train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:title" content="Which suit wins your lane?">
-<meta property="og:description" content="14 quick duels · winner stays on · 2 minutes. Help shape a new training suit for swimmers.">
+<meta property="og:description" content="Quick duels · winner stays on · 2 minutes. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -228,7 +228,7 @@
       <h1>Which suit<br>wins <span>your</span> lane?</h1>
       <p>I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip">14 duels</span>
+        <span class="chip" id="duelChip">14 duels</span>
         <span class="chip">Winner stays on</span>
         <span class="chip">First instinct</span>
         <span class="chip">~2 min</span>
@@ -238,7 +238,7 @@
     <div style="flex:1"></div>
     <div class="fan" id="fan" aria-hidden="true"></div>
     <button class="btn" onclick="startGame()">Start — 2 min</button>
-    <footer>Anonymous. No logos shown — judge the design, not the brand.</footer>
+    <footer>Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</footer>
   </section>
 
   <!-- DUEL -->
@@ -277,22 +277,25 @@ const SRC = new URLSearchParams(location.search).get("src") || "direct";
 let sessionStartedAt = 0;
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKP-Qm3_8KXUABrZLHpNZ-XIFRihfveZm6dUa5cVZbE7QujQZWDx0q1-RIPEwp4DJE/exec";     // <- Apps Script web app URL (auto-logs every result)
+/* IDs stay tied to the file numbers on purpose: S12 is always 12.jpg.
+   Adding the missing 4.jpg later must not renumber the others, or results
+   logged before and after would no longer be comparable. */
 const SUITS = [
-  {id:"S01", name:"Suit 01", img:""},
-  {id:"S02", name:"Suit 02", img:""},
-  {id:"S03", name:"Suit 03", img:""},
-  {id:"S04", name:"Suit 04", img:""},
-  {id:"S05", name:"Suit 05", img:""},
-  {id:"S06", name:"Suit 06", img:""},
-  {id:"S07", name:"Suit 07", img:""},
-  {id:"S08", name:"Suit 08", img:""},
-  {id:"S09", name:"Suit 09", img:""},
-  {id:"S10", name:"Suit 10", img:""},
-  {id:"S11", name:"Suit 11", img:""},
-  {id:"S12", name:"Suit 12", img:""},
-  {id:"S13", name:"Suit 13", img:""},
-  {id:"S14", name:"Suit 14", img:""},
-  {id:"S15", name:"Suit 15", img:""},
+  {id:"S01", name:"Suit 01", img:"1.jpg"},
+  {id:"S02", name:"Suit 02", img:"2.jpg"},
+  {id:"S03", name:"Suit 03", img:"3.jpg"},
+  /* {id:"S04", name:"Suit 04", img:"4.jpg"},  <- drop 4.jpg in the folder and uncomment */
+  {id:"S05", name:"Suit 05", img:"5.jpg"},
+  {id:"S06", name:"Suit 06", img:"6.jpg"},
+  {id:"S07", name:"Suit 07", img:"7.jpg"},
+  {id:"S08", name:"Suit 08", img:"8.jpg"},
+  {id:"S09", name:"Suit 09", img:"9.jpg"},
+  {id:"S10", name:"Suit 10", img:"10.jpg"},
+  {id:"S11", name:"Suit 11", img:"11.jpg"},
+  {id:"S12", name:"Suit 12", img:"12.jpg"},
+  {id:"S13", name:"Suit 13", img:"13.jpg"},
+  {id:"S14", name:"Suit 14", img:"14.jpg"},
+  {id:"S15", name:"Suit 15", img:"15.jpg"},
 ];
 /* ========================================== */
 
@@ -401,6 +404,10 @@ function finish(worstId){
 }
 renderLanes();
 renderFan();
+// duel count follows the list, so adding 4.jpg later needs no copy edits
+document.getElementById('duelChip').textContent = TOTAL+" duels";
+// warm the cache while the intro is being read, so duels swap without pop-in
+SUITS.forEach(s=>{ if(s.img){ const im=new Image(); im.src=s.img; } });
 </script>
 </body>
 </html>
