@@ -10,9 +10,7 @@
 <meta property="og:description" content="Quick duels · winner stays on · 2 minutes. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   ============================================================
   SUIT DUEL — winner-stays game (single file, no backend)
@@ -27,6 +25,18 @@
   ============================================================
 -->
 <style>
+  /* Inter self-hosted (variable font, weights 100-900) — no third-party
+     requests, so visitor IPs never leave our hosting (GDPR-safe) */
+  @font-face{
+    font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+  }
   :root{
     color-scheme:light;
     --bg:#F7F8F9;          /* light neutral, linear light mode */
@@ -222,6 +232,7 @@
   .btn.ghost{background:transparent;color:var(--ink2);font-weight:500;font-size:14px;padding:10px;box-shadow:none}
   .note{margin-top:10px;text-align:center;color:var(--ink2);font-size:12px;line-height:1.5}
   footer{padding:12px 2px;color:var(--ink3);font-size:11px;text-align:center}
+  footer a{color:inherit;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -259,7 +270,7 @@
     <div style="flex:1"></div>
     <div class="fan" id="fan" aria-hidden="true"></div>
     <button class="btn" id="t-start" onclick="startGame()">Start — 2 min</button>
-    <footer id="t-footer">Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</footer>
+    <footer><span id="t-footer">Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</span> &middot; <a id="t-privacy" href="privacy.html">Privacy</a></footer>
   </section>
 
   <!-- DUEL -->
@@ -338,7 +349,8 @@ const I18N = {
     resultP:"Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.",
     join:"Join the tester list →",
     note:"Your picks were saved anonymously. The tester list is optional.",
-    again:"Play again"
+    again:"Play again",
+    privacy:"Privacy"
   },
   pl: {
     htmlTitle:"Wybierz swój strój",
@@ -355,7 +367,8 @@ const I18N = {
     resultP:"Wynik zapisany — dziękuję! Wybrani testerzy dostają darmowe prototypy do treningów i współtworzą to, co powstanie. Dołączenie zajmuje 30 sekund.",
     join:"Dołącz do listy testerów →",
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
-    again:"Zagraj jeszcze raz"
+    again:"Zagraj jeszcze raz",
+    privacy:"Prywatność"
   },
   de: {
     htmlTitle:"Wähl deinen Badeanzug",
@@ -372,7 +385,8 @@ const I18N = {
     resultP:"Dein Ergebnis ist gespeichert — danke! Ausgewählte Tester bekommen kostenlose Prototypen zum Trainieren und gestalten mit, was produziert wird. Die Anmeldung dauert 30 Sekunden.",
     join:"Zur Tester-Liste →",
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
-    again:"Nochmal spielen"
+    again:"Nochmal spielen",
+    privacy:"Datenschutz"
   },
   es: {
     htmlTitle:"Elige tu bañador",
@@ -389,7 +403,8 @@ const I18N = {
     resultP:"Tu resultado está guardado — ¡gracias! Los testers seleccionados reciben prototipos gratis para entrenar y ayudan a definir lo que se fabricará. Unirse lleva 30 segundos.",
     join:"Únete a la lista de testers →",
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
-    again:"Jugar otra vez"
+    again:"Jugar otra vez",
+    privacy:"Privacidad"
   },
   fr: {
     htmlTitle:"Choisis ton maillot",
@@ -406,7 +421,8 @@ const I18N = {
     resultP:"Ton résultat est enregistré — merci ! Les testeurs sélectionnés reçoivent des prototypes gratuits pour s'entraîner et participent à définir ce qui sera produit. Rejoindre prend 30 secondes.",
     join:"Rejoindre la liste des testeurs →",
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
-    again:"Rejouer"
+    again:"Rejouer",
+    privacy:"Confidentialité"
   },
   it: {
     htmlTitle:"Scegli il tuo costume",
@@ -423,7 +439,8 @@ const I18N = {
     resultP:"Il tuo risultato è salvato — grazie! I tester selezionati ricevono prototipi gratuiti per allenarsi e aiutano a definire cosa verrà prodotto. Unirsi richiede 30 secondi.",
     join:"Unisciti alla lista dei tester →",
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
-    again:"Gioca di nuovo"
+    again:"Gioca di nuovo",
+    privacy:"Privacy"
   },
   pt: {
     htmlTitle:"Escolha o seu maiô",
@@ -440,7 +457,8 @@ const I18N = {
     resultP:"Seu resultado foi salvo — obrigada! Os testers selecionados recebem protótipos gratuitos para treinar e ajudam a definir o que será produzido. Entrar leva 30 segundos.",
     join:"Entrar na lista de testers →",
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
-    again:"Jogar de novo"
+    again:"Jogar de novo",
+    privacy:"Privacidade"
   }
 };
 let LANG = 'en';
@@ -475,6 +493,7 @@ function applyLang(){
   document.getElementById('t-resultP').textContent = s.resultP;
   document.getElementById('tallyBtn').textContent = s.join;
   document.getElementById('t-note').textContent = s.note;
+  document.getElementById('t-privacy').textContent = s.privacy;
   document.getElementById('t-again').textContent = s.again;
   document.getElementById('langSel').value = LANG;
   renderLanes(); // refresh Heat/Seria label
