@@ -220,6 +220,13 @@
   .champ .frame img{width:100%;height:100%;object-fit:cover}
   .champ h2{font-size:24px;font-weight:700;letter-spacing:-.02em}
 
+  /* result-screen trait chips — "what made it win", optional multi-select */
+  .traits{margin-top:2px}
+  .traitsQ{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px}
+  .traits .chips{margin:0;justify-content:center}
+  .traits .chip{font-family:inherit;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease}
+  .traits .chip.sel{border-color:var(--accent);background:rgba(94,106,210,.1);color:var(--accent)}
+
   .btn{
     display:block;width:100%;padding:15px;border:0;border-radius:12px;margin-top:14px;
     background:var(--accent);color:#fff;font-weight:600;font-size:16px;letter-spacing:-.01em;
@@ -296,6 +303,10 @@
       <div class="frame" id="champFrame"></div>
       <h2 id="champName"></h2>
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
+      <div class="traits">
+        <p class="traitsQ" id="t-traitsQ">What made it win?</p>
+        <div class="chips" id="traitChips"></div>
+      </div>
     </div>
     <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
@@ -306,6 +317,7 @@
 <script>
 /* ================= CONFIG ================= */
 const SRC = new URLSearchParams(location.search).get("src") || "direct";
+const SID = Math.random().toString(36).slice(2,8); // anonymous per-session id, lets rows from one session be joined in the sheet
 let sessionStartedAt = 0;
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKP-Qm3_8KXUABrZLHpNZ-XIFRihfveZm6dUa5cVZbE7QujQZWDx0q1-RIPEwp4DJE/exec";     // <- Apps Script web app URL (auto-logs every result)
@@ -351,7 +363,9 @@ const I18N = {
     join:"Join the tester list →",
     note:"Your picks were saved anonymously. The tester list is optional.",
     again:"Play again",
-    privacy:"Privacy"
+    privacy:"Privacy",
+    traitsQ:"What made it win?",
+    traits:{colour:"Colour",print:"Print",back:"Back cut",straps:"Straps",tie:"Tie-back",leg:"Leg cut",coverage:"Coverage"}
   },
   pl: {
     htmlTitle:"Wybierz swój strój",
@@ -369,7 +383,9 @@ const I18N = {
     join:"Dołącz do listy testerów →",
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
     again:"Zagraj jeszcze raz",
-    privacy:"Prywatność"
+    privacy:"Prywatność",
+    traitsQ:"Co Cię przekonało?",
+    traits:{colour:"Kolor",print:"Wzór",back:"Plecy",straps:"Ramiączka",tie:"Wiązanie",leg:"Nogawka",coverage:"Zakrycie"}
   },
   de: {
     htmlTitle:"Wähl deinen Badeanzug",
@@ -387,7 +403,9 @@ const I18N = {
     join:"Zur Tester-Liste →",
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
     again:"Nochmal spielen",
-    privacy:"Datenschutz"
+    privacy:"Datenschutz",
+    traitsQ:"Was hat überzeugt?",
+    traits:{colour:"Farbe",print:"Muster",back:"Rückenschnitt",straps:"Träger",tie:"Schnürung",leg:"Beinausschnitt",coverage:"Bedeckung"}
   },
   es: {
     htmlTitle:"Elige tu bañador",
@@ -405,7 +423,9 @@ const I18N = {
     join:"Únete a la lista de testers →",
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
     again:"Jugar otra vez",
-    privacy:"Privacidad"
+    privacy:"Privacidad",
+    traitsQ:"¿Qué te convenció?",
+    traits:{colour:"Color",print:"Estampado",back:"Espalda",straps:"Tirantes",tie:"Lazada",leg:"Corte de pierna",coverage:"Cobertura"}
   },
   fr: {
     htmlTitle:"Choisis ton maillot",
@@ -423,7 +443,9 @@ const I18N = {
     join:"Rejoindre la liste des testeurs →",
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
     again:"Rejouer",
-    privacy:"Confidentialité"
+    privacy:"Confidentialité",
+    traitsQ:"Qu’est-ce qui a fait la différence ?",
+    traits:{colour:"Couleur",print:"Imprimé",back:"Dos",straps:"Bretelles",tie:"Laçage",leg:"Échancrure",coverage:"Couvrance"}
   },
   it: {
     htmlTitle:"Scegli il tuo costume",
@@ -441,7 +463,9 @@ const I18N = {
     join:"Unisciti alla lista dei tester →",
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
     again:"Gioca di nuovo",
-    privacy:"Privacy"
+    privacy:"Privacy",
+    traitsQ:"Cosa ti ha convinto?",
+    traits:{colour:"Colore",print:"Fantasia",back:"Schiena",straps:"Spalline",tie:"Laccetti",leg:"Sgambatura",coverage:"Copertura"}
   },
   pt: {
     htmlTitle:"Escolha o seu maiô",
@@ -459,7 +483,9 @@ const I18N = {
     join:"Entrar na lista de testers →",
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
     again:"Jogar de novo",
-    privacy:"Privacidade"
+    privacy:"Privacidade",
+    traitsQ:"O que te convenceu?",
+    traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração",leg:"Cavado",coverage:"Cobertura"}
   }
 };
 let LANG = 'en';
@@ -495,6 +521,7 @@ function applyLang(){
   document.getElementById('tallyBtn').textContent = s.join;
   document.getElementById('t-note').textContent = s.note;
   document.getElementById('t-privacy').textContent = s.privacy;
+  document.getElementById('t-traitsQ').textContent = s.traitsQ;
   document.getElementById('t-again').textContent = s.again;
   document.getElementById('langSel').value = LANG;
   renderLanes(); // refresh Heat/Seria label
@@ -585,6 +612,40 @@ function renderWorst(){
     g.appendChild(c);
   });
 }
+/* ---- "what made it win" trait chips (optional, multi-select) ---- */
+const TRAITS=["colour","print","back","straps","tie","leg","coverage"];
+const selTraits=new Set();
+let traitsSent=false;
+function renderTraits(){
+  const box=document.getElementById('traitChips'); box.innerHTML="";
+  TRAITS.forEach(k=>{
+    const b=document.createElement('button'); b.type="button"; b.className='chip';
+    b.textContent=I18N[LANG].traits[k];
+    b.onclick=()=>{
+      if(selTraits.has(k)) selTraits.delete(k); else selTraits.add(k);
+      b.classList.toggle('sel');
+      // keep the Tally link in sync so signups carry the reasons too
+      const a=document.getElementById('tallyBtn');
+      const url=new URL(a.href);
+      url.searchParams.set('traits',[...selTraits].join(","));
+      a.href=url.toString();
+    };
+    box.appendChild(b);
+  });
+}
+/* traits are picked after the main result is already logged, so they go out
+   as one extra beacon when the visitor leaves or taps the CTA */
+function sendTraits(){
+  if(traitsSent || !selTraits.size) return; traitsSent=true;
+  const body=JSON.stringify({type:"traits", sid:SID, champion:champion!==null?SUITS[champion].id:"", traits:[...selTraits].join(","), src:SRC, lang:LANG});
+  try{
+    if(navigator.sendBeacon) navigator.sendBeacon(SCRIPT_URL, body);
+    else fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",keepalive:true,body:body}).catch(()=>{});
+  }catch(e){}
+}
+window.addEventListener('pagehide', sendTraits);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendTraits(); });
+
 let finished=false;
 function finish(worstId){
   if(finished) return; finished=true; // double-tap on the grid must not log twice
@@ -593,19 +654,21 @@ function finish(worstId){
   try{
     fetch(SCRIPT_URL,{
       method:"POST", mode:"no-cors",
-      body:JSON.stringify({champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"})
+      body:JSON.stringify({type:"result", sid:SID, champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"})
     }).catch(()=>{});
   }catch(e){}
   const frame=document.getElementById('champFrame');
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="${ch.name}">`
     :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}">${ch.name}</div>`;
   document.getElementById('champName').textContent=I18N[LANG].suit+" "+ch.id.slice(1);
-  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC});
+  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC, sid:SID});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
+  renderTraits();
   show('s-result');
 }
 applyLang();  // also renders lanes with the right labels
 renderFan();
+document.getElementById('tallyBtn').addEventListener('click', sendTraits);
 // warm the cache while the intro is being read, so duels swap without pop-in
 SUITS.forEach(s=>{ if(s.img){ const im=new Image(); im.src=s.img; } });
 </script>
