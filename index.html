@@ -234,6 +234,18 @@
   @media (hover:hover){.btn:hover{filter:brightness(1.06)}}
   /* tester CTA starts muted; lights up once at least one trait chip is picked */
   .btn.quiet{background:#E9EAEE;color:#565A61;box-shadow:none}
+  /* secondary share CTA — native share sheet, one tap on mobile */
+  .btn.share{
+    background:var(--card);color:var(--ink);border:1px solid var(--line-strong);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);margin-top:10px;
+  }
+  /* friend-challenge verdict under the champion photo */
+  .matchNote{
+    font-size:13px;font-weight:500;color:var(--ink);max-width:34ch;
+    background:var(--card);border:1px solid var(--line-strong);
+    padding:8px 16px;border-radius:999px;
+  }
+  .matchNote.hit{border-color:var(--accent);color:#0B57D0;background:rgba(8,102,255,.07)}
   .btn.ghost{background:transparent;color:var(--ink2);font-weight:500;font-size:14px;padding:10px;box-shadow:none}
   .note{margin-top:10px;text-align:center;color:var(--ink2);font-size:12px;line-height:1.5}
   footer{padding:12px 2px;color:var(--ink2);font-size:12px;text-align:center}
@@ -299,6 +311,7 @@
     <div class="champ">
       <div class="crown" id="t-crown">Your champion</div>
       <div class="frame" id="champFrame"></div>
+      <p class="matchNote" id="matchNote" hidden></p>
       <div class="traits">
         <p class="traitsQ" id="t-traitsQ">What made it win?</p>
         <div class="chips" id="traitChips"></div>
@@ -306,6 +319,7 @@
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
     <a class="btn quiet" id="tallyBtn" href="#">Join the tester list &rarr;</a>
+    <button class="btn share" id="shareBtn" type="button" onclick="doShare()">Challenge your friends</button>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
     <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
@@ -313,7 +327,10 @@
 
 <script>
 /* ================= CONFIG ================= */
-const SRC = new URLSearchParams(location.search).get("src") || "direct";
+const QS = new URLSearchParams(location.search);
+const SRC = QS.get("src") || "direct";
+const REF = QS.get("ref") || "";      // anonymous sid of the friend whose share link brought this visitor
+const FRIEND_C = QS.get("c") || "";   // that friend's champion — powers the match/no-match reveal
 const SID = Math.random().toString(36).slice(2,8); // anonymous per-session id, lets rows from one session be joined in the sheet
 let sessionStartedAt = 0;
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
@@ -362,6 +379,11 @@ const I18N = {
     note:"Your picks were saved anonymously. The tester list is optional.",
     again:"Play again",
     privacy:"Privacy",
+    share:"Challenge your friends",
+    shareCopied:"Link copied ✓",
+    shareText:"Which suit wins your lane? See if you'd pick the same one as me 👀",
+    matchYes:"Same pick as the friend who sent you this 🎯",
+    matchNo:"The friend who sent you this picked a different one 👀",
     langLabel:"Language",
     option:"Option",
     traitsQ:"What made it win?",
@@ -384,6 +406,11 @@ const I18N = {
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
     again:"Zagraj jeszcze raz",
     privacy:"Prywatność",
+    share:"Rzuć wyzwanie znajomym",
+    shareCopied:"Link skopiowany ✓",
+    shareText:"Który strój wygra na Twoim torze? Sprawdź, czy wybierzesz ten sam co ja 👀",
+    matchYes:"Ten sam wybór co osoba, która Ci to wysłała 🎯",
+    matchNo:"Osoba, która Ci to wysłała, wybrała inny strój 👀",
     langLabel:"Język",
     option:"Opcja",
     traitsQ:"Co Cię przekonało?",
@@ -406,6 +433,11 @@ const I18N = {
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
     again:"Nochmal spielen",
     privacy:"Datenschutz",
+    share:"Fordere deine Freunde heraus",
+    shareCopied:"Link kopiert ✓",
+    shareText:"Welcher Anzug gewinnt auf deiner Bahn? Mal sehen, ob du denselben wählst wie ich 👀",
+    matchYes:"Gleiche Wahl wie die Person, die dir das geschickt hat 🎯",
+    matchNo:"Die Person, die dir das geschickt hat, hat einen anderen gewählt 👀",
     langLabel:"Sprache",
     option:"Option",
     traitsQ:"Was hat überzeugt?",
@@ -428,6 +460,11 @@ const I18N = {
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
     again:"Jugar otra vez",
     privacy:"Privacidad",
+    share:"Reta a tus amigos",
+    shareCopied:"Enlace copiado ✓",
+    shareText:"¿Qué bañador gana en tu calle? A ver si eliges el mismo que yo 👀",
+    matchYes:"La misma elección que quien te lo envió 🎯",
+    matchNo:"Quien te lo envió eligió otro distinto 👀",
     langLabel:"Idioma",
     option:"Opción",
     traitsQ:"¿Qué te convenció?",
@@ -450,6 +487,11 @@ const I18N = {
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
     again:"Rejouer",
     privacy:"Confidentialité",
+    share:"Défie tes amis",
+    shareCopied:"Lien copié ✓",
+    shareText:"Quel maillot gagne dans ton couloir ? Vois si tu choisis le même que moi 👀",
+    matchYes:"Le même choix que la personne qui t’a envoyé le jeu 🎯",
+    matchNo:"La personne qui t’a envoyé le jeu en a choisi un autre 👀",
     langLabel:"Langue",
     option:"Option",
     traitsQ:"Qu’est-ce qui a fait la différence ?",
@@ -472,6 +514,11 @@ const I18N = {
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
     again:"Gioca di nuovo",
     privacy:"Privacy",
+    share:"Sfida i tuoi amici",
+    shareCopied:"Link copiato ✓",
+    shareText:"Quale costume vince nella tua corsia? Vediamo se scegli lo stesso che ho scelto io 👀",
+    matchYes:"La stessa scelta di chi ti ha inviato il gioco 🎯",
+    matchNo:"Chi ti ha inviato il gioco ne ha scelto un altro 👀",
     langLabel:"Lingua",
     option:"Opzione",
     traitsQ:"Cosa ti ha convinto?",
@@ -494,6 +541,11 @@ const I18N = {
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
     again:"Jogar de novo",
     privacy:"Privacidade",
+    share:"Desafie seus amigos",
+    shareCopied:"Link copiado ✓",
+    shareText:"Qual maiô vence na sua raia? Vamos ver se você escolhe o mesmo que eu 👀",
+    matchYes:"A mesma escolha de quem te enviou o jogo 🎯",
+    matchNo:"Quem te enviou o jogo escolheu outro 👀",
     langLabel:"Idioma",
     option:"Opção",
     traitsQ:"O que te convenceu?",
@@ -534,6 +586,7 @@ function applyLang(){
   document.getElementById('t-note').textContent = s.note;
   document.getElementById('t-privacy').textContent = s.privacy;
   document.getElementById('t-traitsQ').textContent = s.traitsQ;
+  document.getElementById('shareBtn').textContent = s.share;
   document.getElementById('t-again').textContent = s.again;
   const sel=document.getElementById('langSel'); sel.value = LANG; sel.setAttribute('aria-label', s.langLabel);
   renderLanes(); // refresh Heat/Seria label
@@ -659,7 +712,7 @@ function sendTraits(){
   const cur=[...selTraits].join(",");
   if(!cur || cur===lastSentTraits) return;
   lastSentTraits=cur;
-  postLog({type:"traits", sid:SID, champion:champion!==null?SUITS[champion].id:"", traits:cur, src:SRC, lang:LANG});
+  postLog({type:"traits", sid:SID, champion:champion!==null?SUITS[champion].id:"", traits:cur, src:SRC, ref:REF, lang:LANG});
 }
 /* unload-safe POST: sendBeacon survives the tab closing mid-flight,
    keepalive fetch is the fallback (plain fetch would be aborted) */
@@ -680,13 +733,21 @@ function finish(worstId){
   if(finished) return; finished=true; // double-tap on the grid must not log twice
   const ch=SUITS[champion];
   // fire-and-forget log — unload-safe, never blocks or breaks the reveal
-  postLog({type:"result", sid:SID, champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"});
+  postLog({type:"result", sid:SID, champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, ref: REF, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"});
   const frame=document.getElementById('champFrame');
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="">`
     :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}"></div>`;
-  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC, sid:SID});
+  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC, ref:REF, sid:SID});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   renderTraits();
+  // friend-challenge verdict — the share link carried the sender's champion
+  const mn=document.getElementById('matchNote');
+  if(FRIEND_C && SUITS.some(s=>s.id===FRIEND_C)){
+    const hit = FRIEND_C===ch.id;
+    mn.textContent = hit ? I18N[LANG].matchYes : I18N[LANG].matchNo;
+    mn.classList.toggle('hit', hit);
+    mn.hidden = false;
+  }
   resultShownAt=Date.now(); // arms the ghost-tap guard on chips and the CTA
   show('s-result');
 }
@@ -696,6 +757,22 @@ document.getElementById('tallyBtn').addEventListener('click', (e)=>{
   if(Date.now()-resultShownAt < 400){ e.preventDefault(); return; } // ghost tap must not navigate away
   sendTraits();
 });
+/* one-tap share — native sheet on mobile, copy-link fallback on desktop */
+function doShare(){
+  sendTraits();
+  const s=I18N[LANG];
+  const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+SUITS[champion].id;
+  if(navigator.share){
+    navigator.share({text:s.shareText, url:url}).catch(()=>{});
+  }else{
+    try{
+      navigator.clipboard.writeText(s.shareText+" "+url);
+      const b=document.getElementById('shareBtn');
+      b.textContent=s.shareCopied;
+      setTimeout(()=>{ b.textContent=s.share; }, 2000);
+    }catch(e){}
+  }
+}
 // warm the cache while the intro is being read, so duels swap without pop-in
 SUITS.forEach(s=>{ if(s.img){ const im=new Image(); im.src=s.img; } });
 </script>
