@@ -489,7 +489,7 @@ const I18N = {
     privacy:"Confidentialité",
     share:"Défie tes amis",
     shareCopied:"Lien copié ✓",
-    shareText:"Quel maillot gagne dans ton couloir ? Vois si tu choisis le même que moi 👀",
+    shareText:"Quel maillot gagne dans ton couloir ? Vois si tu choisis le même que moi 👀",
     matchYes:"Le même choix que la personne qui t’a envoyé le jeu 🎯",
     matchNo:"La personne qui t’a envoyé le jeu en a choisi un autre 👀",
     langLabel:"Langue",
@@ -758,19 +758,28 @@ document.getElementById('tallyBtn').addEventListener('click', (e)=>{
   sendTraits();
 });
 /* one-tap share — native sheet on mobile, copy-link fallback on desktop */
+function copyFallback(text){ // execCommand path for browsers without navigator.clipboard
+  const ta=document.createElement('textarea');
+  ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); return ok;
+}
 function doShare(){
+  if(Date.now()-resultShownAt < 400) return; // ghost tap from the hard-no grid must not pop the share sheet
   sendTraits();
   const s=I18N[LANG];
   const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+SUITS[champion].id;
   if(navigator.share){
     navigator.share({text:s.shareText, url:url}).catch(()=>{});
   }else{
-    try{
-      navigator.clipboard.writeText(s.shareText+" "+url);
-      const b=document.getElementById('shareBtn');
-      b.textContent=s.shareCopied;
-      setTimeout(()=>{ b.textContent=s.share; }, 2000);
-    }catch(e){}
+    const b=document.getElementById('shareBtn');
+    const done=()=>{ b.textContent=s.shareCopied; setTimeout(()=>{ b.textContent=s.share; }, 2000); };
+    const text=s.shareText+" "+url;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      // confirm only after the write actually lands
+      navigator.clipboard.writeText(text).then(done).catch(()=>{ if(copyFallback(text)) done(); });
+    }else if(copyFallback(text)){ done(); }
   }
 }
 // warm the cache while the intro is being read, so duels swap without pop-in
