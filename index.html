@@ -227,6 +227,17 @@
   @media (hover:hover){.btn:hover{filter:brightness(1.06)}}
   /* tester CTA starts muted; lights up once at least one trait chip is picked */
   .btn.quiet{background:#E9EAEE;color:#565A61;box-shadow:none}
+  /* embedded Tally overlay — the form opens in-game, our own thank-you follows */
+  .tallyWrap{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+  .tallyWrap[hidden]{display:none}
+  .tallyBar{display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+  .tallyAlt{font-size:13px;color:var(--ink2)}
+  .tallyClose{border:1px solid var(--line);background:var(--card);border-radius:999px;width:36px;height:36px;font-size:18px;line-height:1;color:var(--ink2);cursor:pointer;font-family:inherit}
+  .tallyWrap iframe{flex:1;width:100%;border:0;background:var(--card)}
+  /* in-game "you're in" screen */
+  .joined{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+  .joined h2{font-size:clamp(28px,7vw,34px);font-weight:650;letter-spacing:-.03em}
+  .joined p{color:var(--ink2);font-size:15px;line-height:1.6;max-width:40ch}
   /* secondary share CTA — native share sheet, one tap on mobile */
   .btn.share{
     background:var(--card);color:var(--ink);border:1px solid var(--line-strong);
@@ -311,10 +322,29 @@
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
     <a class="btn quiet" id="tallyBtn" href="#">Join the tester list &rarr;</a>
-    <button class="btn share" id="shareBtn" type="button" onclick="doShare()">Challenge your friends</button>
+    <button class="btn share" id="shareBtn" type="button" onclick="doShare(this)">Challenge your friends</button>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
     <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
+
+  <!-- JOINED — in-game thank-you shown after the Tally form is actually submitted -->
+  <section class="screen" id="s-joined">
+    <div class="joined">
+      <h2 id="t-joinedT">You're in!</h2>
+      <p id="t-joinedP">I'll reach out when prototypes are ready. This will take a few months — good things are slow. Thank you for shaping this. 🏊</p>
+    </div>
+    <button class="btn" id="shareBtn2" type="button" onclick="doShare(this)">Share with a swimmer gal</button>
+    <button class="btn ghost" id="t-again2" onclick="location.reload()">Play again</button>
+  </section>
+</div>
+
+<!-- embedded Tally form overlay -->
+<div class="tallyWrap" id="tallyWrap" hidden>
+  <div class="tallyBar">
+    <a class="tallyAlt" id="tallyAlt" href="#" target="_blank" rel="noopener">Open in a new tab</a>
+    <button class="tallyClose" id="tallyClose" type="button" aria-label="Close">&times;</button>
+  </div>
+  <iframe id="tallyFrame" src="about:blank" title="Tester sign-up"></iframe>
 </div>
 
 <script>
@@ -392,6 +422,9 @@ const I18N = {
     note:"Your picks were saved anonymously. The tester list is optional.",
     again:"Play again",
     privacy:"Privacy",
+    joinedTitle:"You're in!",
+    joinedBody:"I'll reach out when prototypes are ready. This will take a few months — good things are slow. Thank you for shaping this. 🏊",
+    openTab:"Open in a new tab",
     finalPick:"Final pick",
     favQ:"Which one would you most want to train in?",
     share:"Share with a swimmer gal",
@@ -420,6 +453,9 @@ const I18N = {
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
     again:"Zagraj jeszcze raz",
     privacy:"Prywatność",
+    joinedTitle:"Jesteś na liście!",
+    joinedBody:"Odezwę się, gdy prototypy będą gotowe. To potrwa kilka miesięcy — dobre rzeczy powstają powoli. Dziękuję, że to współtworzysz. 🏊",
+    openTab:"Otwórz w nowej karcie",
     finalPick:"Ostatni wybór",
     favQ:"W którym trenowałabyś najchętniej?",
     share:"Podeślij koleżance z basenu",
@@ -448,6 +484,9 @@ const I18N = {
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
     again:"Nochmal spielen",
     privacy:"Datenschutz",
+    joinedTitle:"Du bist dabei!",
+    joinedBody:"Ich melde mich, sobald die Prototypen fertig sind. Das dauert ein paar Monate — gute Dinge brauchen Zeit. Danke, dass du das mitgestaltest. 🏊",
+    openTab:"In neuem Tab öffnen",
     finalPick:"Letzte Wahl",
     favQ:"In welchem würdest du am liebsten trainieren?",
     share:"Schick's einer Schwimm-Freundin",
@@ -476,6 +515,9 @@ const I18N = {
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
     again:"Jugar otra vez",
     privacy:"Privacidad",
+    joinedTitle:"¡Estás dentro!",
+    joinedBody:"Te escribiré cuando los prototipos estén listos. Tomará unos meses — lo bueno lleva tiempo. Gracias por dar forma a esto. 🏊",
+    openTab:"Abrir en una pestaña nueva",
     finalPick:"Última elección",
     favQ:"¿Con cuál entrenarías más a gusto?",
     share:"Compártelo con una amiga nadadora",
@@ -504,6 +546,9 @@ const I18N = {
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
     again:"Rejouer",
     privacy:"Confidentialité",
+    joinedTitle:"C'est noté !",
+    joinedBody:"Je te recontacte dès que les prototypes seront prêts. Ça prendra quelques mois — les bonnes choses prennent du temps. Merci de participer à sa création. 🏊",
+    openTab:"Ouvrir dans un nouvel onglet",
     finalPick:"Dernier choix",
     favQ:"Dans lequel préférerais-tu t\'entraîner ?",
     share:"Envoie-le à une copine de natation",
@@ -532,6 +577,9 @@ const I18N = {
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
     again:"Gioca di nuovo",
     privacy:"Privacy",
+    joinedTitle:"Ci sei!",
+    joinedBody:"Ti scriverò quando i prototipi saranno pronti. Ci vorranno alcuni mesi — le cose buone richiedono tempo. Grazie per contribuire a crearlo. 🏊",
+    openTab:"Apri in una nuova scheda",
     finalPick:"Ultima scelta",
     favQ:"In quale ti alleneresti più volentieri?",
     share:"Mandalo a un'amica nuotatrice",
@@ -560,6 +608,9 @@ const I18N = {
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
     again:"Jogar de novo",
     privacy:"Privacidade",
+    joinedTitle:"Você está dentro!",
+    joinedBody:"Vou te avisar quando os protótipos estiverem prontos. Vai levar alguns meses — coisas boas levam tempo. Obrigada por ajudar a criar isso. 🏊",
+    openTab:"Abrir em nova aba",
     finalPick:"Última escolha",
     favQ:"Em qual você mais gostaria de treinar?",
     share:"Manda para uma amiga nadadora",
@@ -606,6 +657,11 @@ function applyLang(){
   document.getElementById('t-privacy').textContent = s.privacy;
   document.getElementById('t-traitsQ').textContent = s.traitsQ;
   document.getElementById('t-favQ').textContent = s.favQ;
+  document.getElementById('t-joinedT').textContent = s.joinedTitle;
+  document.getElementById('t-joinedP').textContent = s.joinedBody;
+  document.getElementById('shareBtn2').textContent = s.share;
+  document.getElementById('t-again2').textContent = s.again;
+  document.getElementById('tallyAlt').textContent = s.openTab;
   document.getElementById('shareBtn').textContent = s.share;
   document.getElementById('t-again').textContent = s.again;
   const sel=document.getElementById('langSel'); sel.value = LANG; sel.setAttribute('aria-label', s.langLabel);
@@ -799,8 +855,29 @@ function finishSession(favId){
 applyLang();  // also renders lanes with the right labels
 renderFan();
 document.getElementById('tallyBtn').addEventListener('click', (e)=>{
-  if(Date.now()-resultShownAt < 400){ e.preventDefault(); return; } // ghost tap must not navigate away
+  e.preventDefault(); // the form opens embedded — our own thank-you screen follows on submit
+  if(Date.now()-resultShownAt < 400) return; // ghost tap must not open the form
   sendTraits();
+  openTally();
+});
+function openTally(){
+  const full = document.getElementById('tallyBtn').href;
+  document.getElementById('tallyAlt').href = full; // fallback if the embed won't load
+  const f = document.getElementById('tallyFrame');
+  const src = full.replace('tally.so/r/','tally.so/embed/') + '&alignLeft=1&transparentBackground=1&dynamicHeight=1';
+  if(f.src !== src) f.src = src;
+  document.getElementById('tallyWrap').hidden = false;
+}
+document.getElementById('tallyClose').addEventListener('click', ()=>{
+  document.getElementById('tallyWrap').hidden = true; // back to the result screen, nothing lost
+});
+window.addEventListener('message', (e)=>{
+  // Tally embeds post JSON strings; FormSubmitted -> swap to our in-game thank-you
+  if(e.origin === 'https://tally.so' && typeof e.data === 'string' && e.data.indexOf('Tally.FormSubmitted') !== -1){
+    document.getElementById('tallyWrap').hidden = true;
+    postLog({type:"signup", sid:SID, src:SRC, ref:REF, lang:LANG}); // conversion row, joinable by sid
+    show('s-joined');
+  }
 });
 /* one-tap share — native sheet on mobile, copy-link fallback on desktop */
 function copyFallback(text){ // execCommand path for browsers without navigator.clipboard
@@ -810,15 +887,15 @@ function copyFallback(text){ // execCommand path for browsers without navigator.
   let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
   document.body.removeChild(ta); return ok;
 }
-function doShare(){
-  if(Date.now()-resultShownAt < 400) return; // ghost tap from the hard-no grid must not pop the share sheet
+function doShare(btn){
+  if(Date.now()-resultShownAt < 400) return; // ghost tap must not pop the share sheet
   sendTraits();
   const s=I18N[LANG];
   const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+(FAV||"");
   if(navigator.share){
     navigator.share({text:s.shareText, url:url}).catch(()=>{});
   }else{
-    const b=document.getElementById('shareBtn');
+    const b=btn||document.getElementById('shareBtn');
     const done=()=>{ b.textContent=s.shareCopied; setTimeout(()=>{ b.textContent=s.share; }, 2000); };
     const text=s.shareText+" "+url;
     if(navigator.clipboard && navigator.clipboard.writeText){
