@@ -322,7 +322,6 @@
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
     <a class="btn quiet" id="tallyBtn" href="#">Join the tester list &rarr;</a>
-    <button class="btn share" id="shareBtn" type="button" onclick="doShare(this)">Challenge your friends</button>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
     <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
@@ -417,13 +416,13 @@ const I18N = {
     tapHint:"Tap the one you'd train in",
     heat:"Heat", finishLbl:"Finish",
     crown:"Your favourite",
-    resultP:"Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.",
+    resultP:"Thank you — your picks just shaped the design. Selected testers get free prototypes to train in and a real say in what gets made. Joining takes 30 seconds.",
     join:"Join the tester list →",
     note:"Your picks were saved anonymously. The tester list is optional.",
     again:"Play again",
     privacy:"Privacy",
     joinedTitle:"You're in!",
-    joinedBody:"I'll reach out when prototypes are ready. This will take a few months — good things are slow. Thank you for shaping this. 🏊",
+    joinedBody:"I'll reach out when prototypes are ready — it takes a few months, good things are slow. Until then, every swimmer who plays makes the design sharper. Know a gal who lives at the pool? Send it her way. 🏊",
     openTab:"Open in a new tab",
     finalPick:"Final pick",
     favQ:"Which one would you most want to train in?",
@@ -448,13 +447,13 @@ const I18N = {
     tapHint:"Tapnij ten, w którym chcesz trenować",
     heat:"Seria", finishLbl:"Meta",
     crown:"Twój faworyt",
-    resultP:"Wynik zapisany — dziękuję! Wybrani testerzy dostają darmowe prototypy do treningów i współtworzą to, co powstanie. Dołączenie zajmuje 30 sekund.",
+    resultP:"Dziękuję — Twoje wybory właśnie wpłynęły na projekt. Wybrane testerki dostają darmowe prototypy do treningów i realny wpływ na to, co powstanie. Dołączenie zajmuje 30 sekund.",
     join:"Dołącz do listy testerów →",
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
     again:"Zagraj jeszcze raz",
     privacy:"Prywatność",
     joinedTitle:"Jesteś na liście!",
-    joinedBody:"Odezwę się, gdy prototypy będą gotowe. To potrwa kilka miesięcy — dobre rzeczy powstają powoli. Dziękuję, że to współtworzysz. 🏊",
+    joinedBody:"Odezwę się, gdy prototypy będą gotowe — to potrwa kilka miesięcy, dobre rzeczy powstają powoli. Do tego czasu każda pływaczka, która zagra, dopracowuje ten projekt. Znasz taką, która żyje basenem? Podeślij jej grę. 🏊",
     openTab:"Otwórz w nowej karcie",
     finalPick:"Ostatni wybór",
     favQ:"W którym trenowałabyś najchętniej?",
@@ -479,13 +478,13 @@ const I18N = {
     tapHint:"Tippe auf den, in dem du trainieren würdest",
     heat:"Lauf", finishLbl:"Ziel",
     crown:"Dein Favorit",
-    resultP:"Dein Ergebnis ist gespeichert — danke! Ausgewählte Tester bekommen kostenlose Prototypen zum Trainieren und gestalten mit, was produziert wird. Die Anmeldung dauert 30 Sekunden.",
+    resultP:"Danke — deine Auswahl hat das Design gerade mitgeprägt. Ausgewählte Testerinnen bekommen kostenlose Prototypen zum Trainieren und echtes Mitspracherecht. Die Anmeldung dauert 30 Sekunden.",
     join:"Zur Tester-Liste →",
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
     again:"Nochmal spielen",
     privacy:"Datenschutz",
     joinedTitle:"Du bist dabei!",
-    joinedBody:"Ich melde mich, sobald die Prototypen fertig sind. Das dauert ein paar Monate — gute Dinge brauchen Zeit. Danke, dass du das mitgestaltest. 🏊",
+    joinedBody:"Ich melde mich, sobald die Prototypen fertig sind — das dauert ein paar Monate, gute Dinge brauchen Zeit. Bis dahin macht jede Schwimmerin, die mitspielt, das Design besser. Kennst du eine, die im Becken lebt? Schick es ihr. 🏊",
     openTab:"In neuem Tab öffnen",
     finalPick:"Letzte Wahl",
     favQ:"In welchem würdest du am liebsten trainieren?",
@@ -510,13 +509,13 @@ const I18N = {
     tapHint:"Toca el que usarías para entrenar",
     heat:"Serie", finishLbl:"Meta",
     crown:"Tu favorito",
-    resultP:"Tu resultado está guardado — ¡gracias! Los testers seleccionados reciben prototipos gratis para entrenar y ayudan a definir lo que se fabricará. Unirse lleva 30 segundos.",
+    resultP:"Gracias — tus elecciones acaban de dar forma al diseño. Las testers seleccionadas reciben prototipos gratis para entrenar y voz real en lo que se fabricará. Unirse lleva 30 segundos.",
     join:"Únete a la lista de testers →",
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
     again:"Jugar otra vez",
     privacy:"Privacidad",
     joinedTitle:"¡Estás dentro!",
-    joinedBody:"Te escribiré cuando los prototipos estén listos. Tomará unos meses — lo bueno lleva tiempo. Gracias por dar forma a esto. 🏊",
+    joinedBody:"Te escribiré cuando los prototipos estén listos — tomará unos meses, lo bueno lleva tiempo. Mientras tanto, cada nadadora que juega afina el diseño. ¿Conoces a una que viva en la piscina? Mándaselo. 🏊",
     openTab:"Abrir en una pestaña nueva",
     finalPick:"Última elección",
     favQ:"¿Con cuál entrenarías más a gusto?",
@@ -541,13 +540,13 @@ const I18N = {
     tapHint:"Touche celui que tu porterais à l'entraînement",
     heat:"Série", finishLbl:"Arrivée",
     crown:"Ton favori",
-    resultP:"Ton résultat est enregistré — merci ! Les testeurs sélectionnés reçoivent des prototypes gratuits pour s'entraîner et participent à définir ce qui sera produit. Rejoindre prend 30 secondes.",
+    resultP:"Merci — tes choix viennent de façonner le design. Les testeuses sélectionnées reçoivent des prototypes gratuits et un vrai droit de regard sur ce qui sera produit. Rejoindre prend 30 secondes.",
     join:"Rejoindre la liste des testeurs →",
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
     again:"Rejouer",
     privacy:"Confidentialité",
     joinedTitle:"C'est noté !",
-    joinedBody:"Je te recontacte dès que les prototypes seront prêts. Ça prendra quelques mois — les bonnes choses prennent du temps. Merci de participer à sa création. 🏊",
+    joinedBody:"Je te recontacte dès que les prototypes seront prêts — ça prendra quelques mois, les bonnes choses prennent du temps. D'ici là, chaque nageuse qui joue affine le design. Tu en connais une qui vit à la piscine ? Envoie-lui le jeu. 🏊",
     openTab:"Ouvrir dans un nouvel onglet",
     finalPick:"Dernier choix",
     favQ:"Dans lequel préférerais-tu t\'entraîner ?",
@@ -572,13 +571,13 @@ const I18N = {
     tapHint:"Tocca quello con cui ti alleneresti",
     heat:"Batteria", finishLbl:"Arrivo",
     crown:"Il tuo preferito",
-    resultP:"Il tuo risultato è salvato — grazie! I tester selezionati ricevono prototipi gratuiti per allenarsi e aiutano a definire cosa verrà prodotto. Unirsi richiede 30 secondi.",
+    resultP:"Grazie — le tue scelte hanno appena plasmato il design. Le tester selezionate ricevono prototipi gratuiti per allenarsi e voce reale su cosa verrà prodotto. Unirsi richiede 30 secondi.",
     join:"Unisciti alla lista dei tester →",
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
     again:"Gioca di nuovo",
     privacy:"Privacy",
     joinedTitle:"Ci sei!",
-    joinedBody:"Ti scriverò quando i prototipi saranno pronti. Ci vorranno alcuni mesi — le cose buone richiedono tempo. Grazie per contribuire a crearlo. 🏊",
+    joinedBody:"Ti scriverò quando i prototipi saranno pronti — ci vorranno alcuni mesi, le cose buone richiedono tempo. Nel frattempo, ogni nuotatrice che gioca affina il design. Ne conosci una che vive in piscina? Mandaglielo. 🏊",
     openTab:"Apri in una nuova scheda",
     finalPick:"Ultima scelta",
     favQ:"In quale ti alleneresti più volentieri?",
@@ -603,13 +602,13 @@ const I18N = {
     tapHint:"Toque no que você usaria para treinar",
     heat:"Série", finishLbl:"Chegada",
     crown:"Seu favorito",
-    resultP:"Seu resultado foi salvo — obrigada! Os testers selecionados recebem protótipos gratuitos para treinar e ajudam a definir o que será produzido. Entrar leva 30 segundos.",
+    resultP:"Obrigada — suas escolhas acabaram de moldar o design. As testers selecionadas recebem protótipos gratuitos para treinar e voz real no que será produzido. Entrar leva 30 segundos.",
     join:"Entrar na lista de testers →",
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
     again:"Jogar de novo",
     privacy:"Privacidade",
     joinedTitle:"Você está dentro!",
-    joinedBody:"Vou te avisar quando os protótipos estiverem prontos. Vai levar alguns meses — coisas boas levam tempo. Obrigada por ajudar a criar isso. 🏊",
+    joinedBody:"Vou te avisar quando os protótipos estiverem prontos — vai levar alguns meses, coisas boas levam tempo. Até lá, cada nadadora que joga afia o design. Conhece uma que vive na piscina? Manda para ela. 🏊",
     openTab:"Abrir em nova aba",
     finalPick:"Última escolha",
     favQ:"Em qual você mais gostaria de treinar?",
@@ -662,7 +661,6 @@ function applyLang(){
   document.getElementById('shareBtn2').textContent = s.share;
   document.getElementById('t-again2').textContent = s.again;
   document.getElementById('tallyAlt').textContent = s.openTab;
-  document.getElementById('shareBtn').textContent = s.share;
   document.getElementById('t-again').textContent = s.again;
   const sel=document.getElementById('langSel'); sel.value = LANG; sel.setAttribute('aria-label', s.langLabel);
   renderLanes(); // refresh Heat/Seria label
@@ -895,7 +893,7 @@ function doShare(btn){
   if(navigator.share){
     navigator.share({text:s.shareText, url:url}).catch(()=>{});
   }else{
-    const b=btn||document.getElementById('shareBtn');
+    const b=btn||document.getElementById('shareBtn2');
     const done=()=>{ b.textContent=s.shareCopied; setTimeout(()=>{ b.textContent=s.share; }, 2000); };
     const text=s.shareText+" "+url;
     if(navigator.clipboard && navigator.clipboard.writeText){
