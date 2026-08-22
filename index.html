@@ -5,23 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F8F9">
 <title>Pick Your Suit</title>
-<meta name="description" content="Quick duels, winner stays on. Tap the suit you'd train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
+<meta name="description" content="20 quick duels. Tap the suit you'd rather train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:title" content="Which suit wins your lane?">
-<meta property="og:description" content="Quick duels · winner stays on · 2 minutes. Help shape a new training suit for swimmers.">
+<meta property="og:description" content="20 quick duels · 2 minutes · anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   ============================================================
-  SUIT DUEL — winner-stays game (single file, no backend)
+  SUIT DUEL v5 — fixed-pairs instrument (single file, no backend)
   HOW TO USE:
-  1. Replace img:"" below with your image URLs (flat-lay shots,
-     same background, logos masked). Empty img = auto placeholder.
-  2. Create a Tally form with HIDDEN FIELDS named exactly:
-     champion, worst, picks  (+ your email question etc.)
-     Tally: Insert block > Hidden fields.
+  1. Stimulus set + targeted pairs live in SUITS / PAIRS below.
+     v5 flow: warm-up + 16 targeted pairs (shuffled) + 3 random fillers = 20.
+  2. Tally hidden fields used: picks, lang, src, ref, sid, traits.
+     (champion/worst are gone in v5 — screener/WTP questions live in Tally.)
   3. Paste your Tally link into TALLY_URL below.
-  4. Host: drag this file into Netlify Drop / Vercel / GitHub Pages.
+  4. Host: push to GitHub — Netlify auto-deploys.
   ============================================================
 -->
 <style>
@@ -160,17 +159,12 @@
     transition:transform .12s ease,border-color .15s ease;
   }
   .card:active{transform:scale(.98)}
-  .card:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   @media (hover:hover){.card:hover{border-color:var(--line-strong)}}
   .card img{width:100%;height:100%;object-fit:cover;display:block}
   .card .ph{ /* placeholder when no image yet */
     width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
     font-weight:600;letter-spacing:.01em;font-size:16px;color:var(--ink2);
-  }
-  .card .streak{
-    position:absolute;right:12px;top:12px;background:var(--accent);color:#fff;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 14px rgba(8,102,255,.3);
-    padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;
   }
   /* divider */
   .rope{
@@ -188,21 +182,7 @@
   @keyframes slidein{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
   @media (prefers-reduced-motion: reduce){.slide-in{animation:none}.card:active{transform:none}.tapHint{transition:none}}
 
-  /* grid (worst pick + reveal) */
-  .bigq{font-size:clamp(22px,6vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:18px 0 16px}
-  .bigq span{color:var(--accent)}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow-y:auto;padding-bottom:16px}
-  .cell{
-    position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--card);
-    cursor:pointer;border:1px solid var(--line);transition:transform .12s ease,border-color .15s ease;
-    box-shadow:0 1px 2px rgba(0,0,0,.04);
-  }
-  .cell img{width:100%;height:100%;object-fit:cover}
-  .cell .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;letter-spacing:.03em;color:var(--ink2)}
-  .cell:active{transform:scale(.96);border-color:var(--accent)}
-  @media (hover:hover){.cell:hover{border-color:var(--line-strong)}}
-
-  /* champion reveal */
+  /* favourite reveal */
   .champ{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
   .champ .crown{color:var(--ink2);letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:600}
   .champ .frame{
@@ -277,8 +257,7 @@
       <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
       <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip" id="duelChip">16 duels</span>
-        <span class="chip" id="c-winner">Winner stays on</span>
+        <span class="chip" id="duelChip">20 duels</span>
         <span class="chip" id="c-instinct">First instinct</span>
         <span class="chip" id="c-time">~2 min</span>
       </div>
@@ -298,12 +277,6 @@
       <div class="card" id="cardB" role="button" tabindex="0" onclick="pick(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pick(1)}"></div>
       <div class="tapHint" id="tapHint">Tap the one you'd train in</div>
     </div>
-  </section>
-
-  <!-- WORST -->
-  <section class="screen" id="s-worst">
-    <div class="bigq" id="t-bigq">And which one is a <span>hard no</span>?</div>
-    <div class="grid" id="worstGrid"></div>
   </section>
 
   <!-- RESULT -->
@@ -330,7 +303,7 @@
 const QS = new URLSearchParams(location.search);
 const SRC = QS.get("src") || "direct";
 const REF = QS.get("ref") || "";      // anonymous sid of the friend whose share link brought this visitor
-const FRIEND_C = QS.get("c") || "";   // that friend's champion — powers the match/no-match reveal
+const FRIEND_C = QS.get("c") || "";   // that friend's favourite — powers the match/no-match reveal
 const SID = Math.random().toString(36).slice(2,8); // anonymous per-session id, lets rows from one session be joined in the sheet
 let sessionStartedAt = 0;
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
@@ -338,30 +311,47 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzswyJHF3ZmakhZt4r8g
 /* IDs stay tied to the file numbers on purpose: S12 is always 12.jpg,
    so adding a suit later never renumbers the others and results logged
    before and after stay comparable. */
+/* v5 FROZEN stimulus set — 18 suits, no changes until 50 valid respondents.
+   Retired ids (never reuse): S01 S02 S06 S07 S08 S11 S16 S19 S22.
+   S24 replaces S19 (same suit, new packshot) — map S19→S24 in analysis. */
 const SUITS = [
-  /* S01 retired 2026-08-22, S02 retired 2026-08-18 — kept out of the roster, old rows in the sheet still reference them */
   {id:"S03", name:"Suit 03", img:"3.jpg"},
   {id:"S04", name:"Suit 04", img:"4.jpg"},
   {id:"S05", name:"Suit 05", img:"5.jpg"},
-  /* S06, S07, S08 retired 2026-08-19 — kept out of the roster, old rows in the sheet still reference them */
   {id:"S09", name:"Suit 09", img:"9.jpg"},
   {id:"S10", name:"Suit 10", img:"10.jpg"},
-  /* S11 retired 2026-08-21 — kept out of the roster, old rows in the sheet still reference it */
   {id:"S12", name:"Suit 12", img:"12.jpg"},
   {id:"S13", name:"Suit 13", img:"13.jpg"},
   {id:"S14", name:"Suit 14", img:"14.jpg"},
   {id:"S15", name:"Suit 15", img:"15.jpg"},
-  /* S16 retired 2026-08-22 — kept out of the roster, old rows in the sheet still reference it */
   {id:"S17", name:"Suit 17", img:"17.jpg"},
   {id:"S18", name:"Suit 18", img:"18.jpg"},
-  /* S19 retired 2026-08-22 — kept out of the roster, old rows in the sheet still reference it */
   {id:"S20", name:"Suit 20", img:"20.jpg"},
   {id:"S21", name:"Suit 21", img:"21.jpg"},
-  {id:"S22", name:"Suit 22", img:"22.jpg"},
-  /* 23.jpg was replaced on 2026-08-22 evening — any rows from earlier that day
-     (when it was the S13 look-alike) refer to the old purple image */
   {id:"S23", name:"Suit 23", img:"23.jpg"},
   {id:"S24", name:"Suit 24", img:"24.jpg"},
+  {id:"S25", name:"Suit 25", img:"25.jpg"},
+  {id:"S26", name:"Suit 26", img:"26.jpg"},
+  {id:"S27", name:"Suit 27", img:"27.jpg"},
+];
+/* v5 targeted pairs — fixed set for every respondent, order shuffled per session */
+const PAIRS = [
+  {p:"P01", axis:"back",   a:"S03", b:"S05"},
+  {p:"P02", axis:"back",   a:"S09", b:"S23"},
+  {p:"P03", axis:"back",   a:"S13", b:"S26"},
+  {p:"P04", axis:"back",   a:"S04", b:"S03"},
+  {p:"P05", axis:"back",   a:"S25", b:"S10"},
+  {p:"P06", axis:"colour", a:"S26", b:"S27"},
+  {p:"P07", axis:"colour", a:"S03", b:"S13"},
+  {p:"P08", axis:"colour", a:"S18", b:"S04"},
+  {p:"P09", axis:"colour", a:"S10", b:"S21"},
+  {p:"P10", axis:"print",  a:"S20", b:"S23"},
+  {p:"P11", axis:"print",  a:"S12", b:"S25"},
+  {p:"P12", axis:"print",  a:"S17", b:"S20"},
+  {p:"P13", axis:"straps", a:"S14", b:"S13"},
+  {p:"P14", axis:"brand",  a:"S05", b:"S23"},
+  {p:"P15", axis:"brand",  a:"S04", b:"S25"},
+  {p:"P16", axis:"brand",  a:"S20", b:"S24"},
 ];
 /* ========================================== */
 
@@ -371,14 +361,13 @@ const I18N = {
     htmlTitle:"Pick Your Suit",
     h1:'Which suit<br>wins <span>your</span> lane?',
     intro:"I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.",
-    duels:"duels", chipWinner:"Winner stays on", chipInstinct:"First instinct", chipTime:"~2 min",
+    duels:"duels", chipInstinct:"First instinct", chipTime:"~2 min",
     sub:"At the end, you can join the free prototype tester list — we're building this suit together with swimmers.",
     start:"Start — 2 min",
     footer:"Anonymous — your picks aren't linked to you. Judge the suit, not the brand.",
     tapHint:"Tap the one you'd train in",
-    heat:"Heat", finishLbl:"Finish", defends:"Defends",
-    bigq:'And which one is a <span>hard no</span>?',
-    crown:"Your champion", suit:"Suit",
+    heat:"Heat", finishLbl:"Finish",
+    crown:"Your favourite",
     resultP:"Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.",
     join:"Join the tester list →",
     note:"Your picks were saved anonymously. The tester list is optional.",
@@ -398,14 +387,13 @@ const I18N = {
     htmlTitle:"Wybierz swój strój",
     h1:'Który strój<br>wygra na <span>Twoim</span> torze?',
     intro:"Pływałam wyczynowo — dwa treningi dziennie — i rzuciłam to w wieku 16 lat. Teraz tworzę strój treningowy, jakiego zawsze mi brakowało. Zanim cokolwiek powstanie: pomóż mi zobaczyć, co pływacy naprawdę wybierają.",
-    duels:"pojedynków", chipWinner:"Zwycięzca zostaje", chipInstinct:"Pierwszy odruch", chipTime:"~2 min",
+    duels:"pojedynków", chipInstinct:"Pierwszy odruch", chipTime:"~2 min",
     sub:"Na koniec możesz dołączyć do listy testerów darmowych prototypów — budujemy ten strój razem z pływakami.",
     start:"Start — 2 min",
     footer:"Anonimowo — Twoje wybory nie są z Tobą powiązane. Oceniaj strój, nie markę.",
     tapHint:"Tapnij ten, w którym chcesz trenować",
-    heat:"Seria", finishLbl:"Meta", defends:"Broni się",
-    bigq:'A który to <span>zdecydowane nie</span>?',
-    crown:"Twój zwycięzca", suit:"Strój",
+    heat:"Seria", finishLbl:"Meta",
+    crown:"Twój faworyt",
     resultP:"Wynik zapisany — dziękuję! Wybrani testerzy dostają darmowe prototypy do treningów i współtworzą to, co powstanie. Dołączenie zajmuje 30 sekund.",
     join:"Dołącz do listy testerów →",
     note:"Twoje wybory zostały zapisane anonimowo. Lista testerów jest opcjonalna.",
@@ -425,14 +413,13 @@ const I18N = {
     htmlTitle:"Wähl deinen Badeanzug",
     h1:'Welcher Anzug<br>gewinnt auf <span>deiner</span> Bahn?',
     intro:"Ich bin leistungsmäßig geschwommen — zwei Einheiten am Tag — und habe mit 16 aufgehört. Jetzt entwickle ich den Badeanzug fürs Training, den ich mir immer gewünscht habe. Bevor etwas produziert wird: Hilf mir zu sehen, was Schwimmerinnen und Schwimmer wirklich wählen.",
-    duels:"Duelle", chipWinner:"Sieger bleibt", chipInstinct:"Erster Instinkt", chipTime:"~2 Min.",
+    duels:"Duelle", chipInstinct:"Erster Instinkt", chipTime:"~2 Min.",
     sub:"Am Ende kannst du dich in die Liste der Prototyp-Tester eintragen — wir entwickeln diesen Anzug gemeinsam mit Schwimmern.",
     start:"Start — 2 Min.",
     footer:"Anonym — deine Auswahl wird nicht mit dir verknüpft. Bewerte den Anzug, nicht die Marke.",
     tapHint:"Tippe auf den, in dem du trainieren würdest",
-    heat:"Lauf", finishLbl:"Ziel", defends:"Verteidigt",
-    bigq:'Und welcher ist ein klares <span>Nein</span>?',
-    crown:"Dein Champion", suit:"Anzug",
+    heat:"Lauf", finishLbl:"Ziel",
+    crown:"Dein Favorit",
     resultP:"Dein Ergebnis ist gespeichert — danke! Ausgewählte Tester bekommen kostenlose Prototypen zum Trainieren und gestalten mit, was produziert wird. Die Anmeldung dauert 30 Sekunden.",
     join:"Zur Tester-Liste →",
     note:"Deine Auswahl wurde anonym gespeichert. Die Tester-Liste ist optional.",
@@ -452,14 +439,13 @@ const I18N = {
     htmlTitle:"Elige tu bañador",
     h1:'¿Qué bañador<br>gana en <span>tu</span> calle?',
     intro:"Nadé de forma competitiva — dos sesiones al día — y lo dejé a los 16. Ahora estoy creando el bañador de entrenamiento que siempre quise tener. Antes de fabricar nada: ayúdame a ver qué eligen de verdad quienes nadan.",
-    duels:"duelos", chipWinner:"El ganador se queda", chipInstinct:"Primer instinto", chipTime:"~2 min",
+    duels:"duelos", chipInstinct:"Primer instinto", chipTime:"~2 min",
     sub:"Al terminar puedes unirte a la lista de testers de prototipos gratis — estamos creando este bañador junto a la comunidad nadadora.",
     start:"Empezar — 2 min",
     footer:"Anónimo — tus elecciones no se vinculan contigo. Juzga el bañador, no la marca.",
     tapHint:"Toca el que usarías para entrenar",
-    heat:"Serie", finishLbl:"Meta", defends:"Defiende",
-    bigq:'¿Y cuál es un <span>no rotundo</span>?',
-    crown:"Tu campeón", suit:"Bañador",
+    heat:"Serie", finishLbl:"Meta",
+    crown:"Tu favorito",
     resultP:"Tu resultado está guardado — ¡gracias! Los testers seleccionados reciben prototipos gratis para entrenar y ayudan a definir lo que se fabricará. Unirse lleva 30 segundos.",
     join:"Únete a la lista de testers →",
     note:"Tus elecciones se guardaron de forma anónima. La lista de testers es opcional.",
@@ -479,14 +465,13 @@ const I18N = {
     htmlTitle:"Choisis ton maillot",
     h1:'Quel maillot<br>gagne dans <span>ton</span> couloir&nbsp;?',
     intro:"J'ai nagé en compétition — deux séances par jour — et j'ai arrêté à 16 ans. Aujourd'hui, je crée le maillot d'entraînement que j'aurais toujours voulu avoir. Avant de produire quoi que ce soit : aide-moi à voir ce que les nageurs choisissent vraiment.",
-    duels:"duels", chipWinner:"Le gagnant reste", chipInstinct:"Premier instinct", chipTime:"~2 min",
+    duels:"duels", chipInstinct:"Premier instinct", chipTime:"~2 min",
     sub:"À la fin, tu peux rejoindre la liste des testeurs de prototypes gratuits — nous créons ce maillot avec les nageurs.",
     start:"Commencer — 2 min",
     footer:"Anonyme — tes choix ne sont pas liés à toi. Juge le maillot, pas la marque.",
     tapHint:"Touche celui que tu porterais à l'entraînement",
-    heat:"Série", finishLbl:"Arrivée", defends:"Défend",
-    bigq:'Et lequel est un <span>non catégorique</span>&nbsp;?',
-    crown:"Ton champion", suit:"Maillot",
+    heat:"Série", finishLbl:"Arrivée",
+    crown:"Ton favori",
     resultP:"Ton résultat est enregistré — merci ! Les testeurs sélectionnés reçoivent des prototypes gratuits pour s'entraîner et participent à définir ce qui sera produit. Rejoindre prend 30 secondes.",
     join:"Rejoindre la liste des testeurs →",
     note:"Tes choix ont été enregistrés de façon anonyme. La liste des testeurs est facultative.",
@@ -506,14 +491,13 @@ const I18N = {
     htmlTitle:"Scegli il tuo costume",
     h1:'Quale costume<br>vince nella <span>tua</span> corsia?',
     intro:"Ho nuotato a livello agonistico — due allenamenti al giorno — e ho smesso a 16 anni. Ora sto creando il costume da allenamento che avrei sempre voluto. Prima di produrre qualsiasi cosa: aiutami a vedere cosa scelgono davvero i nuotatori.",
-    duels:"duelli", chipWinner:"Chi vince resta", chipInstinct:"Primo istinto", chipTime:"~2 min",
+    duels:"duelli", chipInstinct:"Primo istinto", chipTime:"~2 min",
     sub:"Alla fine puoi unirti alla lista dei tester dei prototipi gratuiti — stiamo creando questo costume insieme ai nuotatori.",
     start:"Inizia — 2 min",
     footer:"Anonimo — le tue scelte non sono collegate a te. Giudica il costume, non il marchio.",
     tapHint:"Tocca quello con cui ti alleneresti",
-    heat:"Batteria", finishLbl:"Arrivo", defends:"Difende",
-    bigq:'E qual è un <span>no deciso</span>?',
-    crown:"Il tuo campione", suit:"Costume",
+    heat:"Batteria", finishLbl:"Arrivo",
+    crown:"Il tuo preferito",
     resultP:"Il tuo risultato è salvato — grazie! I tester selezionati ricevono prototipi gratuiti per allenarsi e aiutano a definire cosa verrà prodotto. Unirsi richiede 30 secondi.",
     join:"Unisciti alla lista dei tester →",
     note:"Le tue scelte sono state salvate in forma anonima. La lista dei tester è facoltativa.",
@@ -533,14 +517,13 @@ const I18N = {
     htmlTitle:"Escolha o seu maiô",
     h1:'Qual maiô<br>vence na <span>sua</span> raia?',
     intro:"Nadei competitivamente — dois treinos por dia — e parei aos 16. Agora estou criando o maiô de treino que sempre quis ter. Antes de produzir qualquer coisa: me ajude a ver o que nadadores realmente escolhem.",
-    duels:"duelos", chipWinner:"Quem vence fica", chipInstinct:"Primeiro instinto", chipTime:"~2 min",
+    duels:"duelos", chipInstinct:"Primeiro instinto", chipTime:"~2 min",
     sub:"No final você pode entrar na lista de testers de protótipos gratuitos — estamos criando este maiô junto com nadadores.",
     start:"Começar — 2 min",
     footer:"Anônimo — suas escolhas não são vinculadas a você. Julgue o maiô, não a marca.",
     tapHint:"Toque no que você usaria para treinar",
-    heat:"Série", finishLbl:"Chegada", defends:"Defende",
-    bigq:'E qual é um <span>não definitivo</span>?',
-    crown:"Seu campeão", suit:"Maiô",
+    heat:"Série", finishLbl:"Chegada",
+    crown:"Seu favorito",
     resultP:"Seu resultado foi salvo — obrigada! Os testers selecionados recebem protótipos gratuitos para treinar e ajudam a definir o que será produzido. Entrar leva 30 segundos.",
     join:"Entrar na lista de testers →",
     note:"Suas escolhas foram salvas anonimamente. A lista de testers é opcional.",
@@ -577,14 +560,12 @@ function applyLang(){
   document.getElementById('t-h1').innerHTML = s.h1;
   document.getElementById('t-intro').textContent = s.intro;
   document.getElementById('duelChip').textContent = TOTAL+" "+s.duels;
-  document.getElementById('c-winner').textContent = s.chipWinner;
   document.getElementById('c-instinct').textContent = s.chipInstinct;
   document.getElementById('c-time').textContent = s.chipTime;
   document.getElementById('t-sub').textContent = s.sub;
   document.getElementById('t-start').textContent = s.start;
   document.getElementById('t-footer').textContent = s.footer;
   document.getElementById('tapHint').textContent = s.tapHint;
-  document.getElementById('t-bigq').innerHTML = s.bigq;
   document.getElementById('t-crown').textContent = s.crown;
   document.getElementById('t-resultP').textContent = s.resultP;
   document.getElementById('tallyBtn').textContent = s.join;
@@ -598,27 +579,45 @@ function applyLang(){
 }
 
 const HUES=[196,14,268,152,32,330,88,210,4,240,168,48,300,124,20];
-let order=[], champion=null, challengerIdx=0, duelNo=0, picks=[], streak=0, slots=[null,null], duelShownAt=0, worstShownAt=0, resultShownAt=0;
-const TOTAL = SUITS.length - 1;
+const BYID={}; SUITS.forEach(s=>{ BYID[s.id]=s; });
+let seq=[], idx=0, picks=[], pickTimes=[], wins={}, FAV=null, slots=[null,null], duelShownAt=0, resultShownAt=0;
+const TOTAL = PAIRS.length + 4; // 1 warm-up + 16 targeted + 3 fillers = 20
 
 /* muted, low-saturation placeholder tint — keeps suits distinguishable without shouting */
 function phBg(i){const h=HUES[i%HUES.length];return `linear-gradient(160deg,hsl(${h} 30% 95%),hsl(${h} 32% 88%))`}
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
-function suitHTML(s,i,withStreak){
-  const inner = s.img
+function suitHTML(s){
+  // suit ids stay internal — respondents never see the numbers
+  return s.img
     ? `<img src="${s.img}" alt="">`
-    : `<div class="ph" style="background:${phBg(i)}">
-         <div>${s.name}</div><div style="font-size:10px;opacity:.6;letter-spacing:.12em">ADD IMAGE URL</div>
-       </div>`;
-  const st = withStreak && streak>1 ? `<div class="streak">${I18N[LANG].defends} &times;${streak-1}</div>` : "";
-  return inner+st; // suit ids stay internal — respondents never see the numbers
+    : `<div class="ph" style="background:${phBg(SUITS.indexOf(s))}"></div>`;
+}
+function pairKey(a,b){ return a<b ? a+"~"+b : b+"~"+a; }
+/* warm-up (always first) + 16 targeted shuffled + 3 fillers spliced in at random spots */
+function buildSequence(){
+  const targeted = new Set(PAIRS.map(pr=>pairKey(pr.a,pr.b)));
+  const ids = SUITS.map(s=>s.id);
+  const extras=[], used=new Set();
+  while(extras.length<4){
+    const i=Math.floor(Math.random()*ids.length), j=Math.floor(Math.random()*ids.length);
+    if(i===j) continue;
+    const k=pairKey(ids[i],ids[j]);
+    if(targeted.has(k)||used.has(k)) continue;
+    used.add(k); extras.push({a:ids[i], b:ids[j]});
+  }
+  const warm={p:"WARMUP", axis:"warmup", a:extras[0].a, b:extras[0].b};
+  const main=shuffle([...PAIRS]);
+  extras.slice(1).forEach((e,n)=>{
+    main.splice(Math.floor(Math.random()*(main.length+1)), 0, {p:"F0"+(n+1), axis:"filler", a:e.a, b:e.b});
+  });
+  return [warm, ...main];
 }
 function renderLanes(){
   const l=document.getElementById('lanes'); l.innerHTML="";
-  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='lane'+(i<duelNo?' done':'');l.appendChild(d)}
-  document.getElementById('heat').innerHTML = duelNo<TOTAL?`${I18N[LANG].heat} <b>${String(duelNo+1).padStart(2,'0')}</b>/${TOTAL}`:I18N[LANG].finishLbl;
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='lane'+(i<idx?' done':'');l.appendChild(d)}
+  document.getElementById('heat').innerHTML = idx<TOTAL?`${I18N[LANG].heat} <b>${String(idx+1).padStart(2,'0')}</b>/${TOTAL}`:I18N[LANG].finishLbl;
 }
 function renderFan(){
   const f=document.getElementById('fan'); f.innerHTML="";
@@ -631,8 +630,7 @@ function renderFan(){
 }
 function startGame(){
   sessionStartedAt = Date.now();
-  order = shuffle([...SUITS.keys()]);
-  champion = order[0]; challengerIdx = 1; duelNo=0; picks=[]; streak=1;
+  seq = buildSequence(); idx=0; picks=[]; pickTimes=[]; wins={}; FAV=null;
   // reveal the scoreboard now that heats are live; the language is locked in
   document.getElementById('langSw').classList.add('gone');
   document.getElementById('lanes').classList.remove('pre');
@@ -643,49 +641,31 @@ function startGame(){
 }
 function renderDuel(){
   renderLanes();
-  const challenger = order[challengerIdx];
-  // random side each duel to kill position bias
-  const champSlot = Math.random()<0.5?0:1;
-  slots=[]; slots[champSlot]=champion; slots[1-champSlot]=challenger;
+  const pr = seq[idx];
+  // coin flip per duel — the winner's side is logged with every pick
+  slots = Math.random()<0.5 ? [pr.a, pr.b] : [pr.b, pr.a];
   const A=document.getElementById('cardA'), B=document.getElementById('cardB');
-  A.innerHTML=suitHTML(SUITS[slots[0]],slots[0],slots[0]===champion);
-  B.innerHTML=suitHTML(SUITS[slots[1]],slots[1],slots[1]===champion);
+  A.innerHTML=suitHTML(BYID[slots[0]]);
+  B.innerHTML=suitHTML(BYID[slots[1]]);
   A.setAttribute('aria-label', I18N[LANG].option+" 1"); // positional, never the suit id
   B.setAttribute('aria-label', I18N[LANG].option+" 2");
-  const chCard = slots[0]===challenger?A:B;
-  chCard.classList.remove('slide-in'); void chCard.offsetWidth; chCard.classList.add('slide-in');
+  [A,B].forEach(c=>{ c.classList.remove('slide-in'); void c.offsetWidth; c.classList.add('slide-in'); });
   duelShownAt = Date.now();
 }
 function pick(slot){
+  if(idx>=seq.length) return;
   if(Date.now()-duelShownAt < 200) return; // ignore ghost double-taps carrying over from the previous duel
   document.getElementById('tapHint').classList.add('gone'); // first tap kills the coach mark
+  const pr=seq[idx];
   const winner=slots[slot], loser=slots[1-slot];
-  picks.push(
-    SUITS[winner].id+">"+SUITS[loser].id
-    +"|"+(slot===0?"T":"B")            // which card was tapped: top / bottom
-    +"|"+(winner===champion?"C":"N")   // defending champion held / new challenger won
-    +"|"+(Date.now()-duelShownAt)      // ms from render to decision
-  );
-  streak = (winner===champion)? streak+1 : 1;
-  champion = winner;
-  duelNo++; challengerIdx++;
-  if(challengerIdx < order.length){ renderDuel(); }
-  else { renderLanes(); renderWorst(); show('s-worst'); }
-}
-function renderWorst(){
-  const g=document.getElementById('worstGrid'); g.innerHTML="";
-  SUITS.forEach((s,i)=>{
-    if(i===champion) return; // your champion can't also be the hard no
-    const c=document.createElement('div'); c.className='cell';
-    c.innerHTML = s.img?`<img src="${s.img}" alt="">`
-      :`<div class="ph" style="background:${phBg(i)}"></div>`;
-    c.setAttribute('role','button'); c.tabIndex=0;
-    c.setAttribute('aria-label', I18N[LANG].option+" "+(g.children.length+1)); // positional, never the suit id
-    c.onclick=()=>finish(s.id);
-    c.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); finish(s.id); } };
-    g.appendChild(c);
-  });
-  worstShownAt=Date.now(); // arms the ghost-tap guard in finish()
+  const ms=Date.now()-duelShownAt;
+  // {winner}>{loser}|{pair_id}|{axis}|{side}|{ms}
+  picks.push(winner+">"+loser+"|"+pr.p+"|"+pr.axis+"|"+(slot===0?"T":"B")+"|"+ms);
+  pickTimes.push(ms);
+  wins[winner]=(wins[winner]||0)+1;
+  idx++;
+  if(idx<seq.length){ renderDuel(); }
+  else { renderLanes(); finishSession(); }
 }
 /* ---- "what made it win" trait chips (optional, multi-select) ---- */
 const TRAITS=["colour","print","back","straps","tie"];
@@ -717,7 +697,7 @@ function sendTraits(){
   const cur=[...selTraits].join(",");
   if(!cur || cur===lastSentTraits) return;
   lastSentTraits=cur;
-  postLog({type:"traits", sid:SID, champion:champion!==null?SUITS[champion].id:"", traits:cur, src:SRC, ref:REF, lang:LANG});
+  postLog({type:"traits", sid:SID, traits:cur, src:SRC, ref:REF, lang:LANG});
 }
 /* unload-safe POST: sendBeacon survives the tab closing mid-flight,
    keepalive fetch is the fallback (plain fetch would be aborted) */
@@ -733,22 +713,29 @@ window.addEventListener('pagehide', sendTraits);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendTraits(); });
 
 let finished=false;
-function finish(worstId){
-  if(Date.now()-worstShownAt < 200) return; // ghost tap carried over from the final duel must not pick the "hard no"
-  if(finished) return; finished=true; // double-tap on the grid must not log twice
-  const ch=SUITS[champion];
+function finishSession(){
+  if(finished) return; finished=true;
+  // favourite = most wins this session — shown and shared, but NOT logged (v5 spec drops champion/worst)
+  FAV = Object.keys(wins).reduce((a,b)=> wins[b]>wins[a] ? b : a);
+  const t=[...pickTimes].sort((x,y)=>x-y);
+  const mid=Math.floor(t.length/2);
+  const median = t.length%2 ? t[mid] : Math.round((t[mid-1]+t[mid])/2);
   // fire-and-forget log — unload-safe, never blocks or breaks the reveal
-  postLog({type:"result", sid:SID, champion:SUITS[champion].id, worst:worstId, picks:picks.join(","), src: SRC, ref: REF, lang: LANG, session_ms: Date.now() - sessionStartedAt, device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"});
+  postLog({type:"result", sid:SID, picks:picks.join(","), src:SRC, ref:REF, lang:LANG,
+    total_ms: Date.now()-sessionStartedAt, median_ms: median,
+    flag_speed: median<800, flag_reject: median<400,
+    device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"});
+  const ch=BYID[FAV];
   const frame=document.getElementById('champFrame');
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="">`
-    :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(champion)}"></div>`;
-  const params=new URLSearchParams({champion:ch.id, worst:worstId, picks:picks.join(","), lang:LANG, src:SRC, ref:REF, sid:SID});
+    :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(SUITS.indexOf(ch))}"></div>`;
+  const params=new URLSearchParams({picks:picks.join(","), lang:LANG, src:SRC, ref:REF, sid:SID});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   renderTraits();
-  // friend-challenge verdict — the share link carried the sender's champion
+  // friend-challenge verdict — the share link carried the sender's favourite
   const mn=document.getElementById('matchNote');
-  if(FRIEND_C && SUITS.some(s=>s.id===FRIEND_C)){
-    const hit = FRIEND_C===ch.id;
+  if(FRIEND_C && BYID[FRIEND_C]){
+    const hit = FRIEND_C===FAV;
     mn.textContent = hit ? I18N[LANG].matchYes : I18N[LANG].matchNo;
     mn.classList.toggle('hit', hit);
     mn.hidden = false;
@@ -774,7 +761,7 @@ function doShare(){
   if(Date.now()-resultShownAt < 400) return; // ghost tap from the hard-no grid must not pop the share sheet
   sendTraits();
   const s=I18N[LANG];
-  const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+SUITS[champion].id;
+  const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+(FAV||"");
   if(navigator.share){
     navigator.share({text:s.shareText, url:url}).catch(()=>{});
   }else{
