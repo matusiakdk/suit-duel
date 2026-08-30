@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F8F9">
 <title>Pick Your Suit</title>
-<meta name="description" content="20 quick duels. Tap the suit you'd rather train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
+<meta name="description" content="22 quick duels. Tap the suit you'd rather train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:title" content="Which suit wins your lane?">
-<meta property="og:description" content="20 quick duels · 2 minutes · anonymous. Help shape a new training suit for swimmers.">
+<meta property="og:description" content="22 quick duels · 2 minutes · anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -16,7 +16,7 @@
   SUIT DUEL v5 — fixed-pairs instrument (single file, no backend)
   HOW TO USE:
   1. Stimulus set + targeted pairs live in SUITS / PAIRS below.
-     v5 flow: warm-up + 16 targeted pairs (shuffled) + 3 random fillers = 20.
+     v5 flow: warm-up + 16 targeted pairs (shuffled) + 5 random fillers = 22.
   2. Tally hidden fields used: picks, lang, src, ref, sid, traits.
      (champion/worst are gone in v5 — screener/WTP questions live in Tally.)
   3. Paste your Tally link into TALLY_URL below.
@@ -93,10 +93,9 @@
     background-repeat:no-repeat;background-position:right 10px center;
   }
 
-  /* lane progress */
-  .lanes{display:flex;gap:4px;margin-bottom:16px}
-  .lane{flex:1;height:3px;background:rgba(0,0,0,.09);border-radius:1.5px;transition:background .25s}
-  .lane.done{background:var(--accent)}
+  /* progress — plain percent fill bar, no numbers (v5.2) */
+  .lanes{height:4px;background:rgba(0,0,0,.09);border-radius:2px;margin-bottom:16px;overflow:hidden}
+  .lane-fill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .25s ease}
   /* hidden until the game starts */
   .lanes.pre,.heat.pre{display:none}
 
@@ -273,7 +272,7 @@
     </div>
     <div class="heat pre" id="heat"></div>
   </header>
-  <div class="lanes pre" id="lanes"></div>
+  <div class="lanes pre" id="lanes"><div class="lane-fill" id="laneFill"></div></div>
 
   <!-- INTRO -->
   <section class="screen on" id="s-intro">
@@ -281,7 +280,7 @@
       <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
       <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip" id="duelChip">20 duels</span>
+        <span class="chip" id="duelChip">22 duels</span>
         <span class="chip" id="c-instinct">First instinct</span>
         <span class="chip" id="c-time">~2 min</span>
       </div>
@@ -414,7 +413,6 @@ const I18N = {
     start:"Start — 2 min",
     footer:"Anonymous — your picks aren't linked to you. Judge the suit, not the brand.",
     tapHint:"Tap the one you'd train in",
-    heat:"Heat", finishLbl:"Finish",
     crown:"Your favourite",
     resultP:"Thank you — your picks just shaped the design. Selected testers get free prototypes to train in and a real say in what gets made. Joining takes 30 seconds.",
     join:"Join the tester list →",
@@ -445,7 +443,6 @@ const I18N = {
     start:"Start — 2 min",
     footer:"Anonimowo — Twoje wybory nie są z Tobą powiązane. Oceniaj strój, nie markę.",
     tapHint:"Tapnij ten, w którym chcesz trenować",
-    heat:"Seria", finishLbl:"Meta",
     crown:"Twój faworyt",
     resultP:"Dziękuję — Twoje wybory właśnie wpłynęły na projekt. Wybrane testerki dostają darmowe prototypy do treningów i realny wpływ na to, co powstanie. Dołączenie zajmuje 30 sekund.",
     join:"Dołącz do listy testerów →",
@@ -476,7 +473,6 @@ const I18N = {
     start:"Start — 2 Min.",
     footer:"Anonym — deine Auswahl wird nicht mit dir verknüpft. Bewerte den Anzug, nicht die Marke.",
     tapHint:"Tippe auf den, in dem du trainieren würdest",
-    heat:"Lauf", finishLbl:"Ziel",
     crown:"Dein Favorit",
     resultP:"Danke — deine Auswahl hat das Design gerade mitgeprägt. Ausgewählte Testerinnen bekommen kostenlose Prototypen zum Trainieren und echtes Mitspracherecht. Die Anmeldung dauert 30 Sekunden.",
     join:"Zur Tester-Liste →",
@@ -507,7 +503,6 @@ const I18N = {
     start:"Empezar — 2 min",
     footer:"Anónimo — tus elecciones no se vinculan contigo. Juzga el bañador, no la marca.",
     tapHint:"Toca el que usarías para entrenar",
-    heat:"Serie", finishLbl:"Meta",
     crown:"Tu favorito",
     resultP:"Gracias — tus elecciones acaban de dar forma al diseño. Las testers seleccionadas reciben prototipos gratis para entrenar y voz real en lo que se fabricará. Unirse lleva 30 segundos.",
     join:"Únete a la lista de testers →",
@@ -538,7 +533,6 @@ const I18N = {
     start:"Commencer — 2 min",
     footer:"Anonyme — tes choix ne sont pas liés à toi. Juge le maillot, pas la marque.",
     tapHint:"Touche celui que tu porterais à l'entraînement",
-    heat:"Série", finishLbl:"Arrivée",
     crown:"Ton favori",
     resultP:"Merci — tes choix viennent de façonner le design. Les testeuses sélectionnées reçoivent des prototypes gratuits et un vrai droit de regard sur ce qui sera produit. Rejoindre prend 30 secondes.",
     join:"Rejoindre la liste des testeurs →",
@@ -569,7 +563,6 @@ const I18N = {
     start:"Inizia — 2 min",
     footer:"Anonimo — le tue scelte non sono collegate a te. Giudica il costume, non il marchio.",
     tapHint:"Tocca quello con cui ti alleneresti",
-    heat:"Batteria", finishLbl:"Arrivo",
     crown:"Il tuo preferito",
     resultP:"Grazie — le tue scelte hanno appena plasmato il design. Le tester selezionate ricevono prototipi gratuiti per allenarsi e voce reale su cosa verrà prodotto. Unirsi richiede 30 secondi.",
     join:"Unisciti alla lista dei tester →",
@@ -600,7 +593,6 @@ const I18N = {
     start:"Começar — 2 min",
     footer:"Anônimo — suas escolhas não são vinculadas a você. Julgue o maiô, não a marca.",
     tapHint:"Toque no que você usaria para treinar",
-    heat:"Série", finishLbl:"Chegada",
     crown:"Seu favorito",
     resultP:"Obrigada — suas escolhas acabaram de moldar o design. As testers selecionadas recebem protótipos gratuitos para treinar e voz real no que será produzido. Entrar leva 30 segundos.",
     join:"Entrar na lista de testers →",
@@ -669,7 +661,7 @@ function applyLang(){
 const HUES=[196,14,268,152,32,330,88,210,4,240,168,48,300,124,20];
 const BYID={}; SUITS.forEach(s=>{ BYID[s.id]=s; });
 let seq=[], idx=0, picks=[], pickTimes=[], FAV=null, slots=[null,null], duelShownAt=0, favShownAt=0, resultShownAt=0;
-const TOTAL = PAIRS.length + 4; // 1 warm-up + 16 targeted + 3 fillers = 20
+const TOTAL = PAIRS.length + 6; // 1 warm-up + 16 targeted + 5 fillers = 22
 
 /* muted, low-saturation placeholder tint — keeps suits distinguishable without shouting */
 function phBg(i){const h=HUES[i%HUES.length];return `linear-gradient(160deg,hsl(${h} 30% 95%),hsl(${h} 32% 88%))`}
@@ -683,12 +675,12 @@ function suitHTML(s){
     : `<div class="ph" style="background:${phBg(SUITS.indexOf(s))}"></div>`;
 }
 function pairKey(a,b){ return a<b ? a+"~"+b : b+"~"+a; }
-/* warm-up (always first) + 16 targeted shuffled + 3 fillers spliced in at random spots */
+/* warm-up (always first) + 16 targeted shuffled + 5 fillers spliced in at random spots */
 function buildSequence(){
   const targeted = new Set(PAIRS.map(pr=>pairKey(pr.a,pr.b)));
   const ids = SUITS.map(s=>s.id);
   const extras=[], used=new Set();
-  while(extras.length<4){
+  while(extras.length<6){
     const i=Math.floor(Math.random()*ids.length), j=Math.floor(Math.random()*ids.length);
     if(i===j) continue;
     const k=pairKey(ids[i],ids[j]);
@@ -703,9 +695,9 @@ function buildSequence(){
   return [warm, ...main];
 }
 function renderLanes(){
-  const l=document.getElementById('lanes'); l.innerHTML="";
-  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='lane'+(i<idx?' done':'');l.appendChild(d)}
-  document.getElementById('heat').innerHTML = idx<TOTAL?`${I18N[LANG].heat} <b>${String(idx+1).padStart(2,'0')}</b>/${TOTAL}`:I18N[LANG].finishLbl;
+  // percent fill only — no numeric counter (v5.2); the grid phase sets its own label
+  document.getElementById('laneFill').style.width = (idx/TOTAL*100)+"%";
+  if(idx<TOTAL) document.getElementById('heat').textContent = "";
 }
 function renderFan(){
   const f=document.getElementById('fan'); f.innerHTML="";
