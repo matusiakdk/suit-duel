@@ -659,17 +659,29 @@ const I18N = {
     traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração nas costas",detail:"Detalhe lateral",cut:"Cavado",trim:"Acabamento"}
   }
 };
-let LANG = 'en';
-try{
-  const pref = new URLSearchParams(location.search).get('lang')
-    || localStorage.getItem('sd_lang')
-    || navigator.language || 'en';
-  const code = String(pref).toLowerCase().slice(0,2);
-  LANG = I18N[code] ? code : 'en';
-}catch(e){}
+const SUPPORTED = Object.keys(I18N);   // selectable via ?lang= or the switcher (any of the 7)
+const COMPLETE  = ['en','pl','es'];    // fully translated incl. the freq screen -> auto-detectable
+                                       // (add de/fr/it/pt here once their freq question is translated)
+let LANG = 'en', LANG_SRC = 'default'; // lang_src: url | manual | browser | default
+(function resolveLang(){
+  const two = s => String(s||'').toLowerCase().slice(0,2);
+  try{
+    // 1) explicit URL ?lang= — honours any supported language
+    const q = two(new URLSearchParams(location.search).get('lang'));
+    if(q && SUPPORTED.indexOf(q)>=0){ LANG=q; LANG_SRC='url'; return; }
+    // 2) manual switch, remembered for this session only
+    let m=''; try{ m=two(sessionStorage.getItem('sd_lang')); }catch(e){}
+    if(m && SUPPORTED.indexOf(m)>=0){ LANG=m; LANG_SRC='manual'; return; }
+    // 3) browser — first navigator.languages entry that maps (2-letter) to a COMPLETE language
+    const langs=(navigator.languages && navigator.languages.length)?navigator.languages:[navigator.language];
+    for(let i=0;i<langs.length;i++){ const c=two(langs[i]); if(COMPLETE.indexOf(c)>=0){ LANG=c; LANG_SRC='browser'; return; } }
+  }catch(e){}
+  // 4) default — incomplete browser languages land here until their translation is done
+  LANG='en'; LANG_SRC='default';
+})();
 function setLang(l){
-  LANG = l;
-  try{ localStorage.setItem('sd_lang', l); }catch(e){}
+  LANG = l; LANG_SRC = 'manual';
+  try{ sessionStorage.setItem('sd_lang', l); }catch(e){}
   applyLang();
 }
 function applyLang(){
@@ -911,6 +923,7 @@ function sendTraits(){
 /* unload-safe POST: sendBeacon survives the tab closing mid-flight,
    keepalive fetch is the fallback (plain fetch would be aborted) */
 function postLog(payload){
+  if(payload.lang_src===undefined) payload.lang_src=LANG_SRC; // stamp every row with how the language was chosen
   const body=JSON.stringify(payload);
   try{
     let sent=false;
