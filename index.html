@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F8F9">
 <title>Pick Your Suit</title>
-<meta name="description" content="22 quick duels. Tap the suit you'd rather train in — 2 minutes, anonymous. Help shape a new training suit for swimmers.">
+<meta name="description" content="22 quick duels. Tap the suit you'd rather train in — 1 minutes, anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:title" content="Which suit wins your lane?">
-<meta property="og:description" content="22 quick duels · 2 minutes · anonymous. Help shape a new training suit for swimmers.">
+<meta property="og:description" content="10 quick duels · ~1 minute · anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -15,10 +15,10 @@
   ============================================================
   SUIT DUEL v5 — fixed-pairs instrument (single file, no backend)
   HOW TO USE:
-  1. Stimulus set + targeted pairs live in SUITS / PAIRS below.
-     v5 flow: warm-up + 16 targeted pairs (shuffled) + 5 random fillers = 22.
-  2. Tally hidden fields used: picks, lang, src, ref, sid, traits.
-     (champion/worst are gone in v5 — screener/WTP questions live in Tally.)
+  1. Stimulus set + attributes in SUITS; targeted pairs in CORE / ROTATION below.
+     v6 flow: freq screener -> 10 duels (1 filler + 4 core + 4 rotation + 1 filler)
+     -> finale (session winners) -> end screen. Funnel steps go to sheet=funnel.
+  2. Tally hidden fields used: sid, src, freq, fav, ver, picks, lang, ref, traits.
   3. Paste your Tally link into TALLY_URL below.
   4. Host: push to GitHub — Netlify auto-deploys.
   ============================================================
@@ -183,7 +183,19 @@
 
   /* favourite grid — all 18 suits, shuffled per respondent */
   .bigq{font-size:clamp(22px,6vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:18px 0 16px}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow-y:auto;padding-bottom:16px}
+  /* finale grid — winners only, 2 big columns (v6) */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;overflow-y:auto;padding-bottom:16px}
+  /* freq screener — one tap advances */
+  .freq{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .freqOpts{display:flex;flex-direction:column;gap:12px}
+  .freqOpts button{
+    font-family:inherit;font-size:16px;font-weight:600;color:var(--ink);
+    padding:18px 20px;border-radius:14px;border:1px solid var(--line-strong);background:var(--card);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;text-align:left;
+    transition:transform .1s ease,border-color .15s ease;
+  }
+  .freqOpts button:active{transform:scale(.98);border-color:var(--accent)}
+  @media (hover:hover){.freqOpts button:hover{border-color:var(--line-strong)}}
   .cell{
     position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--card);
     cursor:pointer;border:1px solid var(--line);transition:transform .12s ease,border-color .15s ease;
@@ -224,8 +236,6 @@
   }
   .btn:active{transform:scale(.985)}
   @media (hover:hover){.btn:hover{filter:brightness(1.06)}}
-  /* tester CTA starts muted; lights up once at least one trait chip is picked */
-  .btn.quiet{background:#E9EAEE;color:#565A61;box-shadow:none}
   /* embedded Tally overlay — the form opens in-game, our own thank-you follows */
   .tallyWrap{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
   .tallyWrap[hidden]{display:none}
@@ -280,16 +290,24 @@
       <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
       <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip" id="duelChip">22 duels</span>
+        <span class="chip" id="duelChip">10 duels</span>
         <span class="chip" id="c-instinct">First instinct</span>
-        <span class="chip" id="c-time">~2 min</span>
+        <span class="chip" id="c-time">~1 min</span>
       </div>
       <p class="sub" id="t-sub">Finishers can join the free prototype tester list — we're building this suit together with swimmers.</p>
     </div>
     <div style="flex:1"></div>
     <div class="fan" id="fan" aria-hidden="true"></div>
-    <button class="btn" id="t-start" onclick="startGame()">Start — 2 min</button>
+    <button class="btn" id="t-start" onclick="startGame()">Start — 1 min</button>
     <footer><span id="t-footer">Anonymous — your picks aren't linked to you. Judge the suit, not the brand.</span> &middot; <a id="t-privacy" href="privacy.html">Privacy</a></footer>
+  </section>
+
+  <!-- FREQ — one-tap screener, shown right after Start, before the first duel -->
+  <section class="screen" id="s-freq">
+    <div class="freq">
+      <div class="bigq" id="t-freqQ">How often do you swim?</div>
+      <div class="freqOpts" id="freqOpts"></div>
+    </div>
   </section>
 
   <!-- DUEL -->
@@ -320,7 +338,7 @@
       </div>
       <p id="t-resultP" style="color:var(--ink2);font-size:14px;line-height:1.55;max-width:38ch">Your result is in — thank you! Selected testers get free prototypes to train in and help shape what gets made. 30 seconds to join.</p>
     </div>
-    <a class="btn quiet" id="tallyBtn" href="#">Join the tester list &rarr;</a>
+    <a class="btn" id="tallyBtn" href="#">Join the tester list &rarr;</a>
     <p class="note" id="t-note">Your picks were saved anonymously. The tester list is optional.</p>
     <button class="btn ghost" id="t-again" onclick="location.reload()">Play again</button>
   </section>
@@ -352,54 +370,66 @@ const SRC = QS.get("src") || "direct";
 const REF = QS.get("ref") || "";      // anonymous sid of the friend whose share link brought this visitor
 const FRIEND_C = QS.get("c") || "";   // that friend's favourite — powers the match/no-match reveal
 const SID = Math.random().toString(36).slice(2,8); // anonymous per-session id, lets rows from one session be joined in the sheet
-let sessionStartedAt = 0;
+const VER = "v6";
+const LANDED_AT = Date.now();   // funnel clock (from page load)
+let sessionStartedAt = 0;       // gameplay clock (from Start), used for total_ms
+let FREQ = "";                  // swim-frequency answer (screener)
 const TALLY_URL = "https://tally.so/r/XxAbrj"; // <- paste your Tally link
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw6eJeG_DQzB3VR_kbfofl8jccoRD2sCCh9ii2qFxjMdaaW2zR1sYuxcHomWygrHTh/exec";     // <- Apps Script web app URL (auto-logs every result)
-/* IDs stay tied to the file numbers on purpose: S12 is always 12.jpg,
-   so adding a suit later never renumbers the others and results logged
-   before and after stay comparable. */
-/* v5 FROZEN stimulus set — 18 suits, no changes until 50 valid respondents.
-   Retired ids (never reuse): S01 S02 S06 S07 S08 S11 S16 S19 S22.
-   S24 replaces S19 (same suit, new packshot) — map S19→S24 in analysis. */
+/* IDs stay tied to the file numbers on purpose (S12 is always 12.jpg), and
+   retired ids are never reused, so results logged across versions stay comparable.
+   Retired (never reuse): S01 S02 S05 S06 S07 S08 S11 S16 S17 S19 S20 S22.
+   v6 (2026-09-20): fixed-pairs core+rotation, 10 duels, freq screen, funnel tab.
+
+   Suit attributes drive the contextual result chips (§6):
+   tie=tie-back  print=pattern  detail=side/back ornament  highcut=high leg  contrast=contrast trim.
+   tech:true = technical variant — only ever shown inside its own targeted pair,
+   never in fillers, warm-up filler, or the finale. A suit with img:"" is not yet
+   available, so any pair using it is auto-disabled until the file lands. */
 const SUITS = [
-  {id:"S03", name:"Suit 03", img:"3.jpg"},
-  {id:"S04", name:"Suit 04", img:"4.jpg"},
-  {id:"S05", name:"Suit 05", img:"5.jpg"},
-  {id:"S09", name:"Suit 09", img:"9.jpg"},
-  {id:"S10", name:"Suit 10", img:"10.jpg"},
-  {id:"S12", name:"Suit 12", img:"12.jpg"},
-  {id:"S13", name:"Suit 13", img:"13.jpg"},
-  {id:"S14", name:"Suit 14", img:"14.jpg"},
-  {id:"S15", name:"Suit 15", img:"15.jpg"},
-  {id:"S17", name:"Suit 17", img:"17.jpg"},
+  {id:"S03", name:"Suit 03", img:"3.jpg",  contrast:1},
+  {id:"S04", name:"Suit 04", img:"4.jpg",  contrast:1},
+  {id:"S09", name:"Suit 09", img:"9.jpg",  detail:1},
+  {id:"S10", name:"Suit 10", img:"10.jpg", contrast:1},
+  {id:"S12", name:"Suit 12", img:"12.jpg", print:1},
+  {id:"S13", name:"Suit 13", img:"13.jpg", contrast:1},
+  {id:"S14", name:"Suit 14", img:"14.jpg", contrast:1},
+  {id:"S15", name:"Suit 15", img:"15.jpg", detail:1, highcut:1, contrast:1},
   {id:"S18", name:"Suit 18", img:"18.jpg"},
-  {id:"S20", name:"Suit 20", img:"20.jpg"},
-  {id:"S21", name:"Suit 21", img:"21.jpg"},
-  {id:"S23", name:"Suit 23", img:"23.jpg"},
-  {id:"S24", name:"Suit 24", img:"24.jpg"},
-  {id:"S25", name:"Suit 25", img:"25.jpg"},
-  {id:"S26", name:"Suit 26", img:"26.jpg"},
-  {id:"S27", name:"Suit 27", img:"27.jpg"},
+  {id:"S21", name:"Suit 21", img:"21.jpg", contrast:1},
+  {id:"S23", name:"Suit 23", img:"23.jpg", tie:1, contrast:1},
+  {id:"S24", name:"Suit 24", img:"24.jpg", print:1, highcut:1},
+  {id:"S25", name:"Suit 25", img:"25.jpg", contrast:1},
+  {id:"S26", name:"Suit 26", img:"26.jpg", detail:1, highcut:1, contrast:1},
+  {id:"S27", name:"Suit 27", img:"27.jpg", detail:1, highcut:1, contrast:1},
+  {id:"S28", name:"Suit 28", img:"28.jpg", highcut:1},
+  {id:"S30", name:"Suit 30", img:"30.jpg", highcut:1},
+  {id:"S31", name:"Suit 31", img:"31.jpg", tie:1, highcut:1},
+  {id:"S32", name:"Suit 32", img:"32.jpg", detail:1, highcut:1},
+  {id:"S33", name:"Suit 33", img:"33.jpg", detail:1, highcut:1, contrast:1},
+  /* technical variants — own pairs only */
+  {id:"S35", name:"Suit 35", img:"35.jpg", tech:1, contrast:1},
+  {id:"S36", name:"Suit 36", img:"",       tech:1, print:1, highcut:1}, // 36.jpg pending -> N08 stays off
+  {id:"S37", name:"Suit 37", img:"37.jpg", tech:1},
 ];
-/* v5 targeted pairs — fixed set for every respondent, order shuffled per session */
-const PAIRS = [
-  {p:"P01", axis:"back",   a:"S03", b:"S05"},
-  {p:"P02", axis:"back",   a:"S09", b:"S23"},
-  {p:"P03", axis:"back",   a:"S13", b:"S26"},
-  {p:"P04", axis:"back",   a:"S04", b:"S03"},
-  {p:"P05", axis:"back",   a:"S25", b:"S10"},
-  {p:"P06", axis:"colour", a:"S26", b:"S27"},
-  {p:"P07", axis:"colour", a:"S03", b:"S13"},
-  {p:"P08", axis:"colour", a:"S18", b:"S04"},
-  {p:"P09", axis:"colour", a:"S10", b:"S21"},
-  {p:"P10", axis:"print",  a:"S20", b:"S23"},
-  {p:"P11", axis:"print",  a:"S12", b:"S25"},
-  {p:"P12", axis:"print",  a:"S17", b:"S20"},
-  {p:"P13", axis:"straps", a:"S14", b:"S13"},
-  {p:"P14", axis:"brand",  a:"S05", b:"S23"},
-  {p:"P15", axis:"brand",  a:"S04", b:"S25"},
-  {p:"P16", axis:"brand",  a:"S20", b:"S24"},
+/* v6 targeted pairs. CORE runs every session; ROTATION picks 4 of the active ones.
+   A pair is active only when BOTH suits have an image on disk (see hasImg). */
+const CORE = [
+  {p:"N01", axis:"construction", a:"S14", b:"S25"},
+  {p:"N02", axis:"brand",        a:"S28", b:"S14"},
+  {p:"N03", axis:"straps",       a:"S28", b:"S30"},
+  {p:"N04", axis:"back",         a:"S30", b:"S31"},
 ];
+const ROTATION = [
+  {p:"P02", axis:"back",         a:"S09", b:"S23"}, // v5 anchor, ids unchanged
+  {p:"P04", axis:"back",         a:"S04", b:"S03"}, // v5 anchor, ids unchanged
+  {p:"N05", axis:"detail",       a:"S33", b:"S32"},
+  {p:"N06", axis:"construction", a:"S28", b:"S25"},
+  {p:"N07", axis:"colour",       a:"S14", b:"S35"},
+  {p:"N08", axis:"print",        a:"S30", b:"S36"}, // inactive until 36.jpg exists
+  {p:"N09", axis:"trim",         a:"S35", b:"S37"},
+];
+const FILLER_WEIGHT2 = new Set(["S28","S30","S31","S32","S33","S15"]); // double weight in filler draw
 /* ========================================== */
 
 /* ---- i18n ---- */
@@ -408,9 +438,9 @@ const I18N = {
     htmlTitle:"Pick Your Suit",
     h1:'Which suit<br>wins <span>your</span> lane?',
     intro:"I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.",
-    duels:"duels", chipInstinct:"First instinct", chipTime:"~2 min",
+    duels:"duels", chipInstinct:"First instinct", chipTime:"~1 min",
     sub:"At the end, you can join the free prototype tester list — we're building this suit together with swimmers.",
-    start:"Start — 2 min",
+    start:"Start — 1 min",
     footer:"Anonymous — your picks aren't linked to you. Judge the suit, not the brand.",
     tapHint:"Tap the one you'd train in",
     crown:"Your favourite",
@@ -424,6 +454,8 @@ const I18N = {
     openTab:"Open in a new tab",
     finalPick:"Final pick",
     favQ:"Which one would you most want to train in?",
+    freqQ:"How often do you swim?",
+    freqOpts:[["1-2","1-2× a week"],["3-5","3-5× a week"],["6+","6+ a week"],["coach","I'm a coach"],["none","Not right now"]],
     share:"Share with a swimmer gal",
     shareCopied:"Link copied ✓",
     shareText:"Which suit wins your lane? See if you'd pick the same one as me 👀",
@@ -432,15 +464,15 @@ const I18N = {
     langLabel:"Language",
     option:"Option",
     traitsQ:"What made it win?",
-    traits:{colour:"Colour",print:"Print",back:"Back cut",straps:"Straps",tie:"Tie-back"}
+    traits:{colour:"Colour",print:"Print",back:"Back cut",straps:"Straps",tie:"Tie-back",detail:"Side detail",cut:"Leg cut",trim:"Trim colour"}
   },
   pl: {
     htmlTitle:"Wybierz swój strój",
     h1:'Który strój<br>wygra na <span>Twoim</span> torze?',
     intro:"Pływałam wyczynowo — dwa treningi dziennie — i rzuciłam to w wieku 16 lat. Teraz tworzę strój treningowy, jakiego zawsze mi brakowało. Zanim cokolwiek powstanie: pomóż mi zobaczyć, co pływacy naprawdę wybierają.",
-    duels:"pojedynków", chipInstinct:"Pierwszy odruch", chipTime:"~2 min",
+    duels:"pojedynków", chipInstinct:"Pierwszy odruch", chipTime:"~1 min",
     sub:"Na koniec możesz dołączyć do listy testerów darmowych prototypów — budujemy ten strój razem z pływakami.",
-    start:"Start — 2 min",
+    start:"Start — 1 min",
     footer:"Anonimowo — Twoje wybory nie są z Tobą powiązane. Oceniaj strój, nie markę.",
     tapHint:"Tapnij ten, w którym chcesz trenować",
     crown:"Twój faworyt",
@@ -454,6 +486,8 @@ const I18N = {
     openTab:"Otwórz w nowej karcie",
     finalPick:"Ostatni wybór",
     favQ:"W którym trenowałabyś najchętniej?",
+    freqQ:"Jak często pływasz?",
+    freqOpts:[["1-2","1-2× w tygodniu"],["3-5","3-5× w tygodniu"],["6+","6+ w tygodniu"],["coach","Jestem trenerką"],["none","Teraz nie pływam"]],
     share:"Podeślij koleżance z basenu",
     shareCopied:"Link skopiowany ✓",
     shareText:"Który strój wygra na Twoim torze? Sprawdź, czy wybierzesz ten sam co ja 👀",
@@ -462,15 +496,15 @@ const I18N = {
     langLabel:"Język",
     option:"Opcja",
     traitsQ:"Co Cię przekonało?",
-    traits:{colour:"Kolor",print:"Wzór",back:"Plecy",straps:"Ramiączka",tie:"Wiązanie na plecach"}
+    traits:{colour:"Kolor",print:"Wzór",back:"Plecy",straps:"Ramiączka",tie:"Wiązanie na plecach",detail:"Detal boczny",cut:"Nogawka",trim:"Lamówki"}
   },
   de: {
     htmlTitle:"Wähl deinen Badeanzug",
     h1:'Welcher Anzug<br>gewinnt auf <span>deiner</span> Bahn?',
     intro:"Ich bin leistungsmäßig geschwommen — zwei Einheiten am Tag — und habe mit 16 aufgehört. Jetzt entwickle ich den Badeanzug fürs Training, den ich mir immer gewünscht habe. Bevor etwas produziert wird: Hilf mir zu sehen, was Schwimmerinnen und Schwimmer wirklich wählen.",
-    duels:"Duelle", chipInstinct:"Erster Instinkt", chipTime:"~2 Min.",
+    duels:"Duelle", chipInstinct:"Erster Instinkt", chipTime:"~1 Min.",
     sub:"Am Ende kannst du dich in die Liste der Prototyp-Tester eintragen — wir entwickeln diesen Anzug gemeinsam mit Schwimmern.",
-    start:"Start — 2 Min.",
+    start:"Start — 1 Min.",
     footer:"Anonym — deine Auswahl wird nicht mit dir verknüpft. Bewerte den Anzug, nicht die Marke.",
     tapHint:"Tippe auf den, in dem du trainieren würdest",
     crown:"Dein Favorit",
@@ -484,6 +518,8 @@ const I18N = {
     openTab:"In neuem Tab öffnen",
     finalPick:"Letzte Wahl",
     favQ:"In welchem würdest du am liebsten trainieren?",
+    freqQ:"How often do you swim?",
+    freqOpts:[["1-2","1-2× a week"],["3-5","3-5× a week"],["6+","6+ a week"],["coach","I'm a coach"],["none","Not right now"]],
     share:"Schick's einer Schwimm-Freundin",
     shareCopied:"Link kopiert ✓",
     shareText:"Welcher Anzug gewinnt auf deiner Bahn? Mal sehen, ob du denselben wählst wie ich 👀",
@@ -492,15 +528,15 @@ const I18N = {
     langLabel:"Sprache",
     option:"Option",
     traitsQ:"Was hat überzeugt?",
-    traits:{colour:"Farbe",print:"Muster",back:"Rückenschnitt",straps:"Träger",tie:"Schnürung am Rücken"}
+    traits:{colour:"Farbe",print:"Muster",back:"Rückenschnitt",straps:"Träger",tie:"Schnürung am Rücken",detail:"Seitendetail",cut:"Beinausschnitt",trim:"Einfassung"}
   },
   es: {
     htmlTitle:"Elige tu bañador",
     h1:'¿Qué bañador<br>gana en <span>tu</span> calle?',
     intro:"Nadé de forma competitiva — dos sesiones al día — y lo dejé a los 16. Ahora estoy creando el bañador de entrenamiento que siempre quise tener. Antes de fabricar nada: ayúdame a ver qué eligen de verdad quienes nadan.",
-    duels:"duelos", chipInstinct:"Primer instinto", chipTime:"~2 min",
+    duels:"duelos", chipInstinct:"Primer instinto", chipTime:"~1 min",
     sub:"Al terminar puedes unirte a la lista de testers de prototipos gratis — estamos creando este bañador junto a la comunidad nadadora.",
-    start:"Empezar — 2 min",
+    start:"Empezar — 1 min",
     footer:"Anónimo — tus elecciones no se vinculan contigo. Juzga el bañador, no la marca.",
     tapHint:"Toca el que usarías para entrenar",
     crown:"Tu favorito",
@@ -514,6 +550,8 @@ const I18N = {
     openTab:"Abrir en una pestaña nueva",
     finalPick:"Última elección",
     favQ:"¿Con cuál entrenarías más a gusto?",
+    freqQ:"¿Con qué frecuencia nadas?",
+    freqOpts:[["1-2","1-2× por semana"],["3-5","3-5× por semana"],["6+","6+ por semana"],["coach","Soy entrenadora"],["none","Ahora no"]],
     share:"Compártelo con una amiga nadadora",
     shareCopied:"Enlace copiado ✓",
     shareText:"¿Qué bañador gana en tu calle? A ver si eliges el mismo que yo 👀",
@@ -522,15 +560,15 @@ const I18N = {
     langLabel:"Idioma",
     option:"Opción",
     traitsQ:"¿Qué te convenció?",
-    traits:{colour:"Color",print:"Estampado",back:"Espalda",straps:"Tirantes",tie:"Lazada en la espalda"}
+    traits:{colour:"Color",print:"Estampado",back:"Espalda",straps:"Tirantes",tie:"Lazada en la espalda",detail:"Detalle lateral",cut:"Corte de pierna",trim:"Ribetes"}
   },
   fr: {
     htmlTitle:"Choisis ton maillot",
     h1:'Quel maillot<br>gagne dans <span>ton</span> couloir&nbsp;?',
     intro:"J'ai nagé en compétition — deux séances par jour — et j'ai arrêté à 16 ans. Aujourd'hui, je crée le maillot d'entraînement que j'aurais toujours voulu avoir. Avant de produire quoi que ce soit : aide-moi à voir ce que les nageurs choisissent vraiment.",
-    duels:"duels", chipInstinct:"Premier instinct", chipTime:"~2 min",
+    duels:"duels", chipInstinct:"Premier instinct", chipTime:"~1 min",
     sub:"À la fin, tu peux rejoindre la liste des testeurs de prototypes gratuits — nous créons ce maillot avec les nageurs.",
-    start:"Commencer — 2 min",
+    start:"Commencer — 1 min",
     footer:"Anonyme — tes choix ne sont pas liés à toi. Juge le maillot, pas la marque.",
     tapHint:"Touche celui que tu porterais à l'entraînement",
     crown:"Ton favori",
@@ -544,6 +582,8 @@ const I18N = {
     openTab:"Ouvrir dans un nouvel onglet",
     finalPick:"Dernier choix",
     favQ:"Dans lequel préférerais-tu t\'entraîner ?",
+    freqQ:"How often do you swim?",
+    freqOpts:[["1-2","1-2× a week"],["3-5","3-5× a week"],["6+","6+ a week"],["coach","I'm a coach"],["none","Not right now"]],
     share:"Envoie-le à une copine de natation",
     shareCopied:"Lien copié ✓",
     shareText:"Quel maillot gagne dans ton couloir ? Vois si tu choisis le même que moi 👀",
@@ -552,15 +592,15 @@ const I18N = {
     langLabel:"Langue",
     option:"Option",
     traitsQ:"Qu’est-ce qui a fait la différence ?",
-    traits:{colour:"Couleur",print:"Imprimé",back:"Dos",straps:"Bretelles",tie:"Laçage dans le dos"}
+    traits:{colour:"Couleur",print:"Imprimé",back:"Dos",straps:"Bretelles",tie:"Laçage dans le dos",detail:"Détail latéral",cut:"Échancrure",trim:"Liserés"}
   },
   it: {
     htmlTitle:"Scegli il tuo costume",
     h1:'Quale costume<br>vince nella <span>tua</span> corsia?',
     intro:"Ho nuotato a livello agonistico — due allenamenti al giorno — e ho smesso a 16 anni. Ora sto creando il costume da allenamento che avrei sempre voluto. Prima di produrre qualsiasi cosa: aiutami a vedere cosa scelgono davvero i nuotatori.",
-    duels:"duelli", chipInstinct:"Primo istinto", chipTime:"~2 min",
+    duels:"duelli", chipInstinct:"Primo istinto", chipTime:"~1 min",
     sub:"Alla fine puoi unirti alla lista dei tester dei prototipi gratuiti — stiamo creando questo costume insieme ai nuotatori.",
-    start:"Inizia — 2 min",
+    start:"Inizia — 1 min",
     footer:"Anonimo — le tue scelte non sono collegate a te. Giudica il costume, non il marchio.",
     tapHint:"Tocca quello con cui ti alleneresti",
     crown:"Il tuo preferito",
@@ -574,6 +614,8 @@ const I18N = {
     openTab:"Apri in una nuova scheda",
     finalPick:"Ultima scelta",
     favQ:"In quale ti alleneresti più volentieri?",
+    freqQ:"How often do you swim?",
+    freqOpts:[["1-2","1-2× a week"],["3-5","3-5× a week"],["6+","6+ a week"],["coach","I'm a coach"],["none","Not right now"]],
     share:"Mandalo a un'amica nuotatrice",
     shareCopied:"Link copiato ✓",
     shareText:"Quale costume vince nella tua corsia? Vediamo se scegli lo stesso che ho scelto io 👀",
@@ -582,15 +624,15 @@ const I18N = {
     langLabel:"Lingua",
     option:"Opzione",
     traitsQ:"Cosa ti ha convinto?",
-    traits:{colour:"Colore",print:"Fantasia",back:"Schiena",straps:"Spalline",tie:"Laccetti sulla schiena"}
+    traits:{colour:"Colore",print:"Fantasia",back:"Schiena",straps:"Spalline",tie:"Laccetti sulla schiena",detail:"Dettaglio laterale",cut:"Sgambatura",trim:"Bordini"}
   },
   pt: {
     htmlTitle:"Escolha o seu maiô",
     h1:'Qual maiô<br>vence na <span>sua</span> raia?',
     intro:"Nadei competitivamente — dois treinos por dia — e parei aos 16. Agora estou criando o maiô de treino que sempre quis ter. Antes de produzir qualquer coisa: me ajude a ver o que nadadores realmente escolhem.",
-    duels:"duelos", chipInstinct:"Primeiro instinto", chipTime:"~2 min",
+    duels:"duelos", chipInstinct:"Primeiro instinto", chipTime:"~1 min",
     sub:"No final você pode entrar na lista de testers de protótipos gratuitos — estamos criando este maiô junto com nadadores.",
-    start:"Começar — 2 min",
+    start:"Começar — 1 min",
     footer:"Anônimo — suas escolhas não são vinculadas a você. Julgue o maiô, não a marca.",
     tapHint:"Toque no que você usaria para treinar",
     crown:"Seu favorito",
@@ -604,6 +646,8 @@ const I18N = {
     openTab:"Abrir em nova aba",
     finalPick:"Última escolha",
     favQ:"Em qual você mais gostaria de treinar?",
+    freqQ:"How often do you swim?",
+    freqOpts:[["1-2","1-2× a week"],["3-5","3-5× a week"],["6+","6+ a week"],["coach","I'm a coach"],["none","Not right now"]],
     share:"Manda para uma amiga nadadora",
     shareCopied:"Link copiado ✓",
     shareText:"Qual maiô vence na sua raia? Vamos ver se você escolhe o mesmo que eu 👀",
@@ -612,7 +656,7 @@ const I18N = {
     langLabel:"Idioma",
     option:"Opção",
     traitsQ:"O que te convenceu?",
-    traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração nas costas"}
+    traits:{colour:"Cor",print:"Estampa",back:"Costas",straps:"Alças",tie:"Amarração nas costas",detail:"Detalhe lateral",cut:"Cavado",trim:"Acabamento"}
   }
 };
 let LANG = 'en';
@@ -648,6 +692,7 @@ function applyLang(){
   document.getElementById('t-privacy').textContent = s.privacy;
   document.getElementById('t-traitsQ').textContent = s.traitsQ;
   document.getElementById('t-favQ').textContent = s.favQ;
+  document.getElementById('t-freqQ').textContent = s.freqQ;
   document.getElementById('t-joinedT').textContent = s.joinedTitle;
   document.getElementById('t-joinedP').textContent = s.joinedBody;
   document.getElementById('shareBtn2').textContent = s.share;
@@ -660,8 +705,19 @@ function applyLang(){
 
 const HUES=[196,14,268,152,32,330,88,210,4,240,168,48,300,124,20];
 const BYID={}; SUITS.forEach(s=>{ BYID[s.id]=s; });
-let seq=[], idx=0, picks=[], pickTimes=[], FAV=null, slots=[null,null], duelShownAt=0, favShownAt=0, resultShownAt=0;
-const TOTAL = PAIRS.length + 6; // 1 warm-up + 16 targeted + 5 fillers = 22
+let seq=[], idx=0, picks=[], pickTimes=[], wins={}, seen=new Set(), FAV=null, favOpts=[], slots=[null,null], duelShownAt=0, favShownAt=0, resultShownAt=0;
+
+function hasImg(id){ return !!(BYID[id] && BYID[id].img); }
+function pairActive(pr){ return hasImg(pr.a) && hasImg(pr.b); }
+const ACTIVE_CORE = CORE.filter(pairActive);
+const ACTIVE_ROT  = ROTATION.filter(pairActive);
+const ROT_PICK = Math.min(4, ACTIVE_ROT.length);
+const FILLERS = 2;                                   // one warm-up filler (pos 1) + one in the body
+const TOTAL = ACTIVE_CORE.length + ROT_PICK + FILLERS; // 4 + 4 + 2 = 10 duels
+/* every defined targeted matchup (active or not) is barred from fillers */
+const TARGETED = new Set([...CORE, ...ROTATION].map(pr=>pairKey(pr.a,pr.b)));
+/* weighted pool for filler draws: non-tech roster suits, listed twice if boosted */
+const FILLER_POOL = (()=>{ const p=[]; SUITS.forEach(s=>{ if(s.tech||!s.img) return; p.push(s.id); if(FILLER_WEIGHT2.has(s.id)) p.push(s.id); }); return p; })();
 
 /* muted, low-saturation placeholder tint — keeps suits distinguishable without shouting */
 function phBg(i){const h=HUES[i%HUES.length];return `linear-gradient(160deg,hsl(${h} 30% 95%),hsl(${h} 32% 88%))`}
@@ -675,24 +731,41 @@ function suitHTML(s){
     : `<div class="ph" style="background:${phBg(SUITS.indexOf(s))}"></div>`;
 }
 function pairKey(a,b){ return a<b ? a+"~"+b : b+"~"+a; }
-/* warm-up (always first) + 16 targeted shuffled + 5 fillers spliced in at random spots */
-function buildSequence(){
-  const targeted = new Set(PAIRS.map(pr=>pairKey(pr.a,pr.b)));
-  const ids = SUITS.map(s=>s.id);
-  const extras=[], used=new Set();
-  while(extras.length<6){
-    const i=Math.floor(Math.random()*ids.length), j=Math.floor(Math.random()*ids.length);
-    if(i===j) continue;
-    const k=pairKey(ids[i],ids[j]);
-    if(targeted.has(k)||used.has(k)) continue;
-    used.add(k); extras.push({a:ids[i], b:ids[j]});
+function drawFiller(usedKeys){
+  for(let t=0;t<200;t++){
+    const a=FILLER_POOL[Math.floor(Math.random()*FILLER_POOL.length)];
+    const b=FILLER_POOL[Math.floor(Math.random()*FILLER_POOL.length)];
+    if(a===b) continue;
+    const k=pairKey(a,b);
+    if(TARGETED.has(k)||usedKeys.has(k)) continue;
+    usedKeys.add(k); return {a,b};
   }
-  const warm={p:"WARMUP", axis:"warmup", a:extras[0].a, b:extras[0].b};
-  const main=shuffle([...PAIRS]);
-  extras.slice(1).forEach((e,n)=>{
-    main.splice(Math.floor(Math.random()*(main.length+1)), 0, {p:"F0"+(n+1), axis:"filler", a:e.a, b:e.b});
-  });
-  return [warm, ...main];
+  return null;
+}
+function noBadAdjacency(list){ // N07 and N09 (same suit in 3 versions) must never sit side by side
+  for(let i=0;i<list.length-1;i++){
+    const x=list[i].p, y=list[i+1].p;
+    if((x==="N07"&&y==="N09")||(x==="N09"&&y==="N07")) return false;
+  }
+  return true;
+}
+/* pos 1 = warm-up filler (logged F01) + [4 core + 4 rotation + 1 filler] shuffled */
+function buildSequence(){
+  const usedKeys=new Set();
+  const f1=drawFiller(usedKeys), f2=drawFiller(usedKeys);
+  const rot=shuffle([...ACTIVE_ROT]).slice(0, ROT_PICK);
+  const body=shuffle([...ACTIVE_CORE, ...rot, {p:"F02",axis:"filler",a:f2.a,b:f2.b}]);
+  for(let t=0;t<80 && !noBadAdjacency(body);t++) shuffle(body);
+  if(!noBadAdjacency(body)){ // deterministic fallback: bubble N09 away from N07
+    for(let i=0;i<body.length-1;i++){
+      const x=body[i].p,y=body[i+1].p;
+      if((x==="N07"&&y==="N09")||(x==="N09"&&y==="N07")){
+        const k=body.findIndex((e,j)=>j!==i&&j!==i+1&&e.p!=="N07"&&e.p!=="N09");
+        if(k>=0){ const tmp=body[i+1]; body[i+1]=body[k]; body[k]=tmp; }
+      }
+    }
+  }
+  return [{p:"F01",axis:"filler",a:f1.a,b:f1.b}, ...body];
 }
 function renderLanes(){
   // percent fill only — no numeric counter (v5.2); the grid phase sets its own label
@@ -709,10 +782,25 @@ function renderFan(){
   });
 }
 function startGame(){
+  funnel("start");
   sessionStartedAt = Date.now();
-  seq = buildSequence(); idx=0; picks=[]; pickTimes=[]; FAV=null;
-  // reveal the scoreboard now that heats are live; the language is locked in
-  document.getElementById('langSw').classList.add('gone');
+  idx=0; picks=[]; pickTimes=[]; wins={}; seen=new Set(); FAV=null; favOpts=[];
+  document.getElementById('langSw').classList.add('gone'); // language locked in
+  renderFreq();
+  show('s-freq');
+}
+/* one-tap swim-frequency screener before the duels */
+function renderFreq(){
+  const box=document.getElementById('freqOpts'); box.innerHTML="";
+  I18N[LANG].freqOpts.forEach(([code,label])=>{
+    const b=document.createElement('button'); b.type="button"; b.textContent=label;
+    b.onclick=()=>chooseFreq(code);
+    box.appendChild(b);
+  });
+}
+function chooseFreq(code){
+  FREQ=code; funnel("freq");
+  seq = buildSequence();
   document.getElementById('lanes').classList.remove('pre');
   document.getElementById('heat').classList.remove('pre');
   document.getElementById('tapHint').classList.remove('gone');
@@ -742,48 +830,71 @@ function pick(slot){
   // {winner}>{loser}|{pair_id}|{axis}|{side}|{ms}
   picks.push(winner+">"+loser+"|"+pr.p+"|"+pr.axis+"|"+(slot===0?"T":"B")+"|"+ms);
   pickTimes.push(ms);
-  idx++;
+  wins[winner]=(wins[winner]||0)+1; seen.add(winner); seen.add(loser);
+  idx++; lastDuelIdx=idx;
+  if(idx===1||idx===5||idx===10) funnel("duel", idx); // sampled funnel checkpoints only
   if(idx<seq.length){ renderDuel(); }
   else {
     renderLanes();
-    document.getElementById('heat').textContent = I18N[LANG].finalPick; // the grid is the last, most important question — not an epilogue
-    renderFav(); show('s-fav');
+    document.getElementById('heat').textContent = I18N[LANG].finalPick; // finale is the last, most important question
+    renderFinale(); show('s-fav'); funnel("final_shown");
   }
 }
-/* explicit favourite over the full set — shuffled independently per respondent */
-function renderFav(){
+/* finale — session winners only (no tech), max 6, padded to >=4 with other suits seen */
+function renderFinale(){
+  let winners = shuffle(Object.keys(wins).filter(id=>!BYID[id].tech)); // shuffle first so ties break at random
+  winners.sort((a,b)=> wins[b]-wins[a]);                               // stable sort keeps random order within ties
+  let opts = winners.slice(0,6);
+  if(opts.length<4){
+    const pad = shuffle([...seen].filter(id=>!BYID[id].tech && opts.indexOf(id)<0));
+    while(opts.length<4 && pad.length) opts.push(pad.shift());
+  }
+  opts = shuffle(opts);
+  favOpts = opts.slice();
   const g=document.getElementById('favGrid'); g.innerHTML="";
-  shuffle([...SUITS]).forEach(s=>{
+  opts.forEach(id=>{
     const c=document.createElement('div'); c.className='cell';
-    c.innerHTML = s.img?`<img src="${s.img}" alt="">`
-      :`<div class="ph" style="background:${phBg(SUITS.indexOf(s))}"></div>`;
+    c.innerHTML = suitHTML(BYID[id]);
     c.setAttribute('role','button'); c.tabIndex=0;
     c.setAttribute('aria-label', I18N[LANG].option+" "+(g.children.length+1)); // positional, never the suit id
-    c.onclick=()=>finishSession(s.id);
-    c.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); finishSession(s.id); } };
+    c.onclick=()=>pickFav(id);
+    c.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pickFav(id); } };
     g.appendChild(c);
   });
-  favShownAt=Date.now(); // arms the ghost-tap guard in finishSession()
+  favShownAt=Date.now(); // arms the ghost-tap guard
 }
-/* ---- "what made it win" trait chips (optional, multi-select) ---- */
-const TRAITS=["colour","print","back","straps","tie"];
+function pickFav(id){
+  if(Date.now()-favShownAt < 200) return; // ghost tap carried over from the final duel
+  funnel("fav_picked");
+  finishSession(id);
+}
+/* ---- "what made it win" trait chips (optional, multi-select, contextual) ---- */
 const selTraits=new Set();
 let lastSentTraits="";
+/* always Colour/Back cut/Straps + up to 2 driven by the chosen suit's attributes */
+function contextualChips(){
+  const base=["colour","back","straps"];
+  const s=BYID[FAV]||{};
+  const map=[["print","print"],["tie","tie"],["detail","detail"],["highcut","cut"],["contrast","trim"]];
+  let extra=map.filter(([attr])=>s[attr]).map(([,key])=>key);
+  if(extra.length>2) extra=shuffle(extra).slice(0,2);
+  return base.concat(extra);
+}
 function renderTraits(){
   const box=document.getElementById('traitChips'); box.innerHTML="";
-  TRAITS.forEach(k=>{
+  contextualChips().forEach(k=>{
     const b=document.createElement('button'); b.type="button"; b.className='chip';
     b.textContent=I18N[LANG].traits[k];
     b.onclick=()=>{
-      if(Date.now()-resultShownAt < 200) return; // ghost tap from the hard-no grid must not pre-toggle a chip
+      if(Date.now()-resultShownAt < 200) return; // ghost tap from the finale must not pre-toggle a chip
+      if(!chipLogged){ chipLogged=true; funnel("chip"); } // first chip interaction this session
       if(selTraits.has(k)) selTraits.delete(k); else selTraits.add(k);
       b.classList.toggle('sel');
-      // keep the Tally link in sync so signups carry the reasons too
+      // keep the Tally link in sync so signups carry the reasons too (Join is always active)
       const a=document.getElementById('tallyBtn');
       const url=new URL(a.href);
       url.searchParams.set('traits',[...selTraits].join(","));
       a.href=url.toString();
-      a.classList.toggle('quiet', selTraits.size===0); // CTA lights up with the first pick
     };
     box.appendChild(b);
   });
@@ -807,20 +918,32 @@ function postLog(payload){
     if(!sent) fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",keepalive:true,body:body}).catch(()=>{});
   }catch(e){}
 }
-window.addEventListener('pagehide', sendTraits);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendTraits(); });
+/* completion funnel — one row per step to the "funnel" sheet tab (§8) */
+let endShown=false, exitSent=false, chipLogged=false, lastDuelIdx=0;
+function funnel(step, idx){
+  postLog({sheet:"funnel", sid:SID, src:SRC, lang:LANG, ver:VER, step:step,
+    idx:(idx==null?"":idx), ms_since_start:Date.now()-LANDED_AT, freq:FREQ});
+}
+/* on tab hide/close: flush pending traits, and (once) an exit row if the run never reached the end */
+function flushExit(){
+  sendTraits();
+  if(!endShown && !exitSent){ exitSent=true; funnel("exit", lastDuelIdx); }
+}
+window.addEventListener('pagehide', flushExit);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushExit(); });
 
 let finished=false;
 function finishSession(favId){
-  if(Date.now()-favShownAt < 200) return; // ghost tap carried over from the final duel must not pick the favourite
   if(finished) return; finished=true; // double-tap on the grid must not log twice
-  FAV = favId; // explicit favourite from the grid — logged as fav (champion/worst stay removed)
+  FAV = favId; // explicit favourite from the finale — logged as fav (champion/worst stay removed)
   const favMs = Date.now()-favShownAt;
+  const favPos = favOpts.indexOf(favId)+1; // position in the shuffled finale (1-indexed)
   const t=[...pickTimes].sort((x,y)=>x-y);
   const mid=Math.floor(t.length/2);
   const median = t.length%2 ? t[mid] : Math.round((t[mid-1]+t[mid])/2);
   // fire-and-forget log — unload-safe, never blocks or breaks the reveal
-  postLog({type:"result", sid:SID, picks:picks.join(","), fav:FAV, fav_ms:favMs, src:SRC, ref:REF, lang:LANG,
+  postLog({type:"result", ver:VER, sid:SID, picks:picks.join(","), fav:FAV, fav_ms:favMs,
+    fav_pos:favPos, fav_opts:favOpts.join("|"), freq:FREQ, src:SRC, ref:REF, lang:LANG,
     total_ms: Date.now()-sessionStartedAt, median_ms: median,
     flag_speed: median<800, flag_reject: median<400,
     device: matchMedia("(pointer:coarse)").matches ? "mobile" : "desktop"});
@@ -828,7 +951,7 @@ function finishSession(favId){
   const frame=document.getElementById('champFrame');
   frame.innerHTML = ch.img?`<img src="${ch.img}" alt="">`
     :`<div class="ph" style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink2);background:${phBg(SUITS.indexOf(ch))}"></div>`;
-  const params=new URLSearchParams({picks:picks.join(","), fav:FAV, lang:LANG, src:SRC, ref:REF, sid:SID});
+  const params=new URLSearchParams({picks:picks.join(","), fav:FAV, freq:FREQ, ver:VER, lang:LANG, src:SRC, ref:REF, sid:SID});
   document.getElementById('tallyBtn').href = TALLY_URL+"?"+params.toString();
   renderTraits();
   // friend-challenge verdict — the share link carried the sender's favourite
@@ -840,13 +963,15 @@ function finishSession(favId){
     mn.hidden = false;
   }
   resultShownAt=Date.now(); // arms the ghost-tap guard on chips and the CTA
-  show('s-result');
+  show('s-result'); endShown=true; funnel("end_shown");
 }
 applyLang();  // also renders lanes with the right labels
 renderFan();
+funnel("landing"); // page-view step (sid already generated)
 document.getElementById('tallyBtn').addEventListener('click', (e)=>{
   e.preventDefault(); // the form opens embedded — our own thank-you screen follows on submit
   if(Date.now()-resultShownAt < 400) return; // ghost tap must not open the form
+  funnel("join_click");
   sendTraits();
   openTally();
 });
@@ -865,7 +990,9 @@ window.addEventListener('message', (e)=>{
   // Tally embeds post JSON strings; FormSubmitted -> swap to our in-game thank-you
   if(e.origin === 'https://tally.so' && typeof e.data === 'string' && e.data.indexOf('Tally.FormSubmitted') !== -1){
     document.getElementById('tallyWrap').hidden = true;
-    postLog({type:"signup", sid:SID, src:SRC, ref:REF, lang:LANG}); // conversion row, joinable by sid
+    postLog({type:"signup", ver:VER, sid:SID, src:SRC, ref:REF, lang:LANG}); // conversion row, joinable by sid
+    funnel("tally_submit");
+    endShown=true; // reached the far end — no exit row
     show('s-joined');
   }
 });
@@ -879,6 +1006,7 @@ function copyFallback(text){ // execCommand path for browsers without navigator.
 }
 function doShare(btn){
   if(Date.now()-resultShownAt < 400) return; // ghost tap must not pop the share sheet
+  funnel("share_click");
   sendTraits();
   const s=I18N[LANG];
   const url=location.origin+location.pathname+"?src=share&ref="+SID+"&c="+(FAV||"");
