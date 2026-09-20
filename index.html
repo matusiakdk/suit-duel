@@ -22,7 +22,7 @@
   SUIT DUEL v5 — fixed-pairs instrument (single file, no backend)
   HOW TO USE:
   1. Stimulus set + attributes in SUITS; targeted pairs in CORE / ROTATION below.
-     v6 flow: freq screener -> 10 duels (1 filler + 4 core + 4 rotation + 1 filler)
+     v6 flow: freq screener -> 12 duels (1 filler + 4 core + 6 rotation + 1 filler)
      -> finale (session winners) -> end screen. Funnel steps go to sheet=funnel.
   2. Tally hidden fields used: sid, src, freq, fav, ver, picks, lang, ref, traits.
   3. Paste your Tally link into TALLY_URL below.
@@ -296,7 +296,7 @@
       <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
       <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip" id="duelChip">10 duels</span>
+        <span class="chip" id="duelChip">12 duels</span>
         <span class="chip" id="c-instinct">First instinct</span>
         <span class="chip" id="c-time">~1 min</span>
       </div>
@@ -401,13 +401,13 @@ const SUITS = [
   {id:"S13", name:"Suit 13", img:"13.jpg", contrast:1},
   {id:"S14", name:"Suit 14", img:"14.jpg", contrast:1},
   {id:"S15", name:"Suit 15", img:"15.jpg", detail:1, highcut:1, contrast:1},
-  {id:"S18", name:"Suit 18", img:"18.jpg"},
+  {id:"S18", name:"Suit 18", img:"18.jpg", highcut:1},
   {id:"S21", name:"Suit 21", img:"21.jpg", contrast:1},
   {id:"S23", name:"Suit 23", img:"23.jpg", tie:1, contrast:1},
   {id:"S24", name:"Suit 24", img:"24.jpg", print:1, highcut:1},
   {id:"S25", name:"Suit 25", img:"25.jpg", contrast:1},
   {id:"S26", name:"Suit 26", img:"26.jpg", detail:1, highcut:1, contrast:1},
-  {id:"S27", name:"Suit 27", img:"27.jpg", detail:1, highcut:1, contrast:1},
+  {id:"S27", name:"Suit 27", img:"27.jpg", detail:1, contrast:1},
   {id:"S28", name:"Suit 28", img:"28.jpg", highcut:1},
   {id:"S30", name:"Suit 30", img:"30.jpg", highcut:1},
   {id:"S31", name:"Suit 31", img:"31.jpg", tie:1, highcut:1},
@@ -429,6 +429,8 @@ const CORE = [
 const ROTATION = [
   {p:"P02", axis:"back",         a:"S09", b:"S23"}, // v5 anchor, ids unchanged
   {p:"P04", axis:"back",         a:"S04", b:"S03"}, // v5 anchor, ids unchanged
+  {p:"P06", axis:"cut",          a:"S26", b:"S27"}, // v5 anchor (was axis colour); ids unchanged
+  {p:"P08", axis:"cut",          a:"S04", b:"S18"}, // v5 anchor (was axis colour); ids unchanged
   {p:"N05", axis:"detail",       a:"S33", b:"S32"},
   {p:"N06", axis:"construction", a:"S28", b:"S25", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
   {p:"N07", axis:"colour",       a:"S14", b:"S35", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
@@ -436,7 +438,7 @@ const ROTATION = [
   {p:"N09", axis:"trim",         a:"S35", b:"S37"},
 ];
 const FILLER_W2 = new Set(["S32","S33","S15"]);             // double weight in filler draw
-const FILLER_W0 = new Set(["S28","S30","S31","S14","S25"]); // weight zero — already in a core pair every session
+const FILLER_W0 = new Set(["S28","S30","S31","S14","S25","S04"]); // weight zero — already in a targeted pair every session
 /* ========================================== */
 
 /* ---- i18n ---- */
@@ -730,7 +732,7 @@ function hasImg(id){ return !!(BYID[id] && BYID[id].img); }
 function pairActive(pr){ return !pr.off && hasImg(pr.a) && hasImg(pr.b); }
 const ACTIVE_CORE = CORE.filter(pairActive);
 const ACTIVE_ROT  = ROTATION.filter(pairActive);
-const ROT_PICK = Math.min(4, ACTIVE_ROT.length);
+const ROT_PICK = Math.min(6, ACTIVE_ROT.length);
 const FILLERS = 2;                                   // one warm-up filler (pos 1) + one in the body
 const TOTAL = ACTIVE_CORE.length + ROT_PICK + FILLERS; // 4 + 4 + 2 = 10 duels
 /* every defined targeted matchup (active or not) is barred from fillers */
@@ -851,7 +853,7 @@ function pick(slot){
   pickTimes.push(ms);
   wins[winner]=(wins[winner]||0)+1; seen.add(winner); seen.add(loser);
   idx++; lastDuelIdx=idx;
-  if(idx===1||idx===5||idx===10) funnel("duel", idx); // sampled funnel checkpoints only
+  if(idx===1||idx===6||idx===12) funnel("duel", idx); // sampled funnel checkpoints only
   if(idx<seq.length){ renderDuel(); }
   else {
     renderLanes();
