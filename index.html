@@ -424,8 +424,8 @@ const ROTATION = [
   {p:"P02", axis:"back",         a:"S09", b:"S23"}, // v5 anchor, ids unchanged
   {p:"P04", axis:"back",         a:"S04", b:"S03"}, // v5 anchor, ids unchanged
   {p:"N05", axis:"detail",       a:"S33", b:"S32"},
-  {p:"N06", axis:"construction", a:"S28", b:"S25"},
-  {p:"N07", axis:"colour",       a:"S14", b:"S35"},
+  {p:"N06", axis:"construction", a:"S28", b:"S25", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
+  {p:"N07", axis:"colour",       a:"S14", b:"S35", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
   {p:"N08", axis:"print",        a:"S30", b:"S36"}, // inactive until 36.jpg exists
   {p:"N09", axis:"trim",         a:"S35", b:"S37"},
 ];
@@ -721,7 +721,7 @@ const BYID={}; SUITS.forEach(s=>{ BYID[s.id]=s; });
 let seq=[], idx=0, picks=[], pickTimes=[], wins={}, seen=new Set(), FAV=null, favOpts=[], slots=[null,null], duelShownAt=0, favShownAt=0, resultShownAt=0;
 
 function hasImg(id){ return !!(BYID[id] && BYID[id].img); }
-function pairActive(pr){ return hasImg(pr.a) && hasImg(pr.b); }
+function pairActive(pr){ return !pr.off && hasImg(pr.a) && hasImg(pr.b); }
 const ACTIVE_CORE = CORE.filter(pairActive);
 const ACTIVE_ROT  = ROTATION.filter(pairActive);
 const ROT_PICK = Math.min(4, ACTIVE_ROT.length);
