@@ -934,6 +934,7 @@ function sendTraits(){
    keepalive fetch is the fallback (plain fetch would be aborted) */
 function postLog(payload){
   if(payload.lang_src===undefined) payload.lang_src=LANG_SRC; // stamp every row with how the language was chosen
+  if(payload.ver===undefined) payload.ver=VER;                // every row carries the schema version, no exceptions
   const body=JSON.stringify(payload);
   try{
     let sent=false;
@@ -944,7 +945,7 @@ function postLog(payload){
 /* completion funnel — one row per step to the "funnel" sheet tab (§8) */
 let endShown=false, exitSent=false, chipLogged=false, lastDuelIdx=0;
 function funnel(step, idx){
-  postLog({sheet:"funnel", sid:SID, src:SRC, lang:LANG, ver:VER, step:step,
+  postLog({sheet:"funnel", sid:SID, src:SRC, lang:LANG, step:step,
     idx:(idx==null?"":idx), ms_since_start:Date.now()-LANDED_AT, freq:FREQ});
 }
 /* on tab hide/close: flush pending traits, and (once) an exit row if the run never reached the end */
@@ -965,7 +966,7 @@ function finishSession(favId){
   const mid=Math.floor(t.length/2);
   const median = t.length%2 ? t[mid] : Math.round((t[mid-1]+t[mid])/2);
   // fire-and-forget log — unload-safe, never blocks or breaks the reveal
-  postLog({type:"result", ver:VER, sid:SID, picks:picks.join(","), fav:FAV, fav_ms:favMs,
+  postLog({type:"result", sid:SID, picks:picks.join(","), fav:FAV, fav_ms:favMs,
     fav_pos:favPos, fav_opts:favOpts.join("|"), freq:FREQ, src:SRC, ref:REF, lang:LANG,
     total_ms: Date.now()-sessionStartedAt, median_ms: median,
     flag_speed: median<800, flag_reject: median<400,
@@ -1013,7 +1014,7 @@ window.addEventListener('message', (e)=>{
   // Tally embeds post JSON strings; FormSubmitted -> swap to our in-game thank-you
   if(e.origin === 'https://tally.so' && typeof e.data === 'string' && e.data.indexOf('Tally.FormSubmitted') !== -1){
     document.getElementById('tallyWrap').hidden = true;
-    postLog({type:"signup", ver:VER, sid:SID, src:SRC, ref:REF, lang:LANG}); // conversion row, joinable by sid
+    postLog({type:"signup", sid:SID, src:SRC, ref:REF, lang:LANG}); // conversion row, joinable by sid
     funnel("tally_submit");
     endShown=true; // reached the far end — no exit row
     show('s-joined');
