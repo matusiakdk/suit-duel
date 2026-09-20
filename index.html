@@ -429,7 +429,8 @@ const ROTATION = [
   {p:"N08", axis:"print",        a:"S30", b:"S36"}, // inactive until 36.jpg exists
   {p:"N09", axis:"trim",         a:"S35", b:"S37"},
 ];
-const FILLER_WEIGHT2 = new Set(["S28","S30","S31","S32","S33","S15"]); // double weight in filler draw
+const FILLER_W2 = new Set(["S32","S33","S15"]);             // double weight in filler draw
+const FILLER_W0 = new Set(["S28","S30","S31","S14","S25"]); // weight zero — already in a core pair every session
 /* ========================================== */
 
 /* ---- i18n ---- */
@@ -666,12 +667,12 @@ let LANG = 'en', LANG_SRC = 'default'; // lang_src: url | manual | browser | def
 (function resolveLang(){
   const two = s => String(s||'').toLowerCase().slice(0,2);
   try{
-    // 1) explicit URL ?lang= — honours any supported language
-    const q = two(new URLSearchParams(location.search).get('lang'));
-    if(q && SUPPORTED.indexOf(q)>=0){ LANG=q; LANG_SRC='url'; return; }
-    // 2) manual switch, remembered for this session only
+    // 1) manual switch, remembered for this session only (survives Play-again reload)
     let m=''; try{ m=two(sessionStorage.getItem('sd_lang')); }catch(e){}
     if(m && SUPPORTED.indexOf(m)>=0){ LANG=m; LANG_SRC='manual'; return; }
+    // 2) explicit URL ?lang= — honours any supported language
+    const q = two(new URLSearchParams(location.search).get('lang'));
+    if(q && SUPPORTED.indexOf(q)>=0){ LANG=q; LANG_SRC='url'; return; }
     // 3) browser — first navigator.languages entry that maps (2-letter) to a COMPLETE language
     const langs=(navigator.languages && navigator.languages.length)?navigator.languages:[navigator.language];
     for(let i=0;i<langs.length;i++){ const c=two(langs[i]); if(COMPLETE.indexOf(c)>=0){ LANG=c; LANG_SRC='browser'; return; } }
@@ -729,7 +730,7 @@ const TOTAL = ACTIVE_CORE.length + ROT_PICK + FILLERS; // 4 + 4 + 2 = 10 duels
 /* every defined targeted matchup (active or not) is barred from fillers */
 const TARGETED = new Set([...CORE, ...ROTATION].map(pr=>pairKey(pr.a,pr.b)));
 /* weighted pool for filler draws: non-tech roster suits, listed twice if boosted */
-const FILLER_POOL = (()=>{ const p=[]; SUITS.forEach(s=>{ if(s.tech||!s.img) return; p.push(s.id); if(FILLER_WEIGHT2.has(s.id)) p.push(s.id); }); return p; })();
+const FILLER_POOL = (()=>{ const p=[]; SUITS.forEach(s=>{ if(s.tech||!s.img||FILLER_W0.has(s.id)) return; p.push(s.id); if(FILLER_W2.has(s.id)) p.push(s.id); }); return p; })();
 
 /* muted, low-saturation placeholder tint — keeps suits distinguishable without shouting */
 function phBg(i){const h=HUES[i%HUES.length];return `linear-gradient(160deg,hsl(${h} 30% 95%),hsl(${h} 32% 88%))`}
