@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F8F9">
 <title>Pick Your Suit</title>
-<meta name="description" content="13 quick duels. Tap the suit you'd rather train in — about a minute, anonymous. Help shape a new training suit for swimmers.">
+<meta name="description" content="14 quick duels. Tap the suit you'd rather train in — about a minute, anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:title" content="Which suit wins your lane?">
-<meta property="og:description" content="13 quick duels · ~1 minute · anonymous. Help shape a new training suit for swimmers.">
+<meta property="og:description" content="14 quick duels · ~1 minute · anonymous. Help shape a new training suit for swimmers.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://suit-duel.netlify.app/">
-<meta property="og:image" content="https://suit-duel.netlify.app/og.jpg?v=2">
+<meta property="og:image" content="https://suit-duel.netlify.app/og.jpg?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://suit-duel.netlify.app/og.jpg?v=2">
+<meta name="twitter:image" content="https://suit-duel.netlify.app/og.jpg?v=3">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <!--
@@ -22,7 +22,7 @@
   SUIT DUEL v5 — fixed-pairs instrument (single file, no backend)
   HOW TO USE:
   1. Stimulus set + attributes in SUITS; targeted pairs in CORE / ROTATION below.
-     v6 flow: freq screener -> 13 duels (1 filler + 4 core + 7 rotation + 1 filler)
+     v6.1 flow: freq screener -> 14 duels (1 filler + 3 core + 9 rotation + 1 filler)
      -> finale (session winners) -> end screen. Funnel steps go to sheet=funnel.
   2. Tally hidden fields used: sid, src, freq, fav, ver, picks, lang, ref, traits.
   3. Paste your Tally link into TALLY_URL below.
@@ -296,7 +296,7 @@
       <h1 id="t-h1">Which suit<br>wins <span>your</span> lane?</h1>
       <p id="t-intro">I swam competitively — two sessions a day — and quit at 16. Now I'm building the training suit I always wished existed. Before anything gets made: help me see what swimmers actually pick.</p>
       <div class="chips" aria-hidden="true">
-        <span class="chip" id="duelChip">13 duels</span>
+        <span class="chip" id="duelChip">14 duels</span>
         <span class="chip" id="c-instinct">First instinct</span>
         <span class="chip" id="c-time">~1 min</span>
       </div>
@@ -376,7 +376,7 @@ const SRC = QS.get("src") || "direct";
 const REF = QS.get("ref") || "";      // anonymous sid of the friend whose share link brought this visitor
 const FRIEND_C = QS.get("c") || "";   // that friend's favourite — powers the match/no-match reveal
 const SID = Math.random().toString(36).slice(2,8); // anonymous per-session id, lets rows from one session be joined in the sheet
-const VER = "v6";
+const VER = "v6.1";
 const LANDED_AT = Date.now();   // funnel clock (from page load)
 let sessionStartedAt = 0;       // gameplay clock (from Start), used for total_ms
 let FREQ = "";                  // swim-frequency answer (screener)
@@ -397,26 +397,26 @@ const SUITS = [
   {id:"S04", name:"Suit 04", img:"4.jpg",  contrast:1},
   {id:"S09", name:"Suit 09", img:"9.jpg",  detail:1},
   {id:"S10", name:"Suit 10", img:"10.jpg", contrast:1},
-  {id:"S12", name:"Suit 12", img:"12.jpg", print:1},
+  {id:"S12", name:"Suit 12", img:"12.jpg", print:1, retired:1},
   {id:"S13", name:"Suit 13", img:"13.jpg", contrast:1},
   {id:"S14", name:"Suit 14", img:"14.jpg", contrast:1},
   {id:"S15", name:"Suit 15", img:"15.jpg", detail:1, highcut:1, contrast:1},
   {id:"S18", name:"Suit 18", img:"18.jpg", highcut:1},
   {id:"S21", name:"Suit 21", img:"21.jpg", contrast:1},
-  {id:"S23", name:"Suit 23", img:"23.jpg", tie:1, contrast:1},
-  {id:"S24", name:"Suit 24", img:"24.jpg", print:1, highcut:1},
+  {id:"S23", name:"Suit 23", img:"23.jpg", tie:1, contrast:1, retired:1},
+  {id:"S24", name:"Suit 24", img:"24.jpg", print:1, highcut:1, retired:1},
   {id:"S25", name:"Suit 25", img:"25.jpg", contrast:1},
   {id:"S26", name:"Suit 26", img:"26.jpg", detail:1, highcut:1, contrast:1},
   {id:"S27", name:"Suit 27", img:"27.jpg", detail:1, contrast:1},
   {id:"S28", name:"Suit 28", img:"28.jpg", highcut:1},
   {id:"S30", name:"Suit 30", img:"30.jpg", highcut:1},
-  {id:"S31", name:"Suit 31", img:"31.jpg", tie:1, highcut:1},
+  {id:"S31", name:"Suit 31", img:"31.jpg", tie:1, highcut:1, retired:1},
   {id:"S32", name:"Suit 32", img:"32.jpg", detail:1, highcut:1},
   {id:"S33", name:"Suit 33", img:"33.jpg", detail:1, highcut:1, contrast:1},
   /* technical variants — own pairs only */
-  {id:"S35", name:"Suit 35", img:"35.jpg", tech:1, contrast:1},
-  {id:"S36", name:"Suit 36", img:"",       tech:1, print:1, highcut:1}, // 36.jpg pending -> N08 stays off
-  {id:"S37", name:"Suit 37", img:"37.jpg", tech:1},
+  {id:"S35", name:"Suit 35", img:"35.jpg", tech:1, noFinale:1, contrast:1}, // filler+finale excluded
+  {id:"S36", name:"Suit 36", img:"",       tech:1, noFinale:1, print:1, highcut:1}, // reserved, inactive
+  {id:"S37", name:"Suit 37", img:"37.jpg", tech:1}, // v6.1: finale-eligible (tech = filler-excluded only)
 ];
 /* v6 targeted pairs. CORE runs every session; ROTATION picks 4 of the active ones.
    A pair is active only when BOTH suits have an image on disk (see hasImg). */
@@ -424,22 +424,25 @@ const CORE = [
   {p:"N01", axis:"construction", a:"S14", b:"S25"},
   {p:"N02", axis:"brand",        a:"S28", b:"S14"},
   {p:"N03", axis:"straps",       a:"S28", b:"S30"},
-  {p:"N04", axis:"back",         a:"S30", b:"S31"},
+  {p:"N04", axis:"back",         a:"S30", b:"S31", off:1}, // wycofane v6.1, wiązania i printy
 ];
 const ROTATION = [
-  {p:"P02", axis:"back",         a:"S09", b:"S23"}, // v5 anchor, ids unchanged
+  {p:"P02", axis:"back",         a:"S09", b:"S23", off:1}, // wycofane v6.1, wiązania i printy
   {p:"P04", axis:"back",         a:"S04", b:"S03"}, // v5 anchor, ids unchanged
   {p:"P06", axis:"cut",          a:"S26", b:"S27"}, // v5 anchor (was axis colour); ids unchanged
   {p:"P08", axis:"cut",          a:"S04", b:"S18"}, // v5 anchor (was axis colour); ids unchanged
-  {p:"P11", axis:"print",        a:"S12", b:"S25"}, // v5 anchor, ids unchanged
+  {p:"P11", axis:"print",        a:"S12", b:"S25", off:1}, // wycofane v6.1, wiązania i printy
   {p:"N05", axis:"detail",       a:"S33", b:"S32"},
-  {p:"N06", axis:"construction", a:"S28", b:"S25", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
+  {p:"N06", axis:"construction", a:"S28", b:"S25"}, // reactivated v6.1
   {p:"N07", axis:"colour",       a:"S14", b:"S35", off:1}, // wyłączone w v6.0, do ewentualnego powrotu w drugiej turze
-  {p:"N08", axis:"print",        a:"S30", b:"S36"}, // inactive until 36.jpg exists
+  {p:"N08", axis:"print",        a:"S30", b:"S36", off:1}, // wycofane v6.1, wiązania i printy
   {p:"N09", axis:"trim",         a:"S35", b:"S37"},
+  {p:"N10", axis:"back",         a:"S15", b:"S13"}, // ozdobny wielopaskowy tył vs zwykłe skrzyżowanie
+  {p:"N11", axis:"straps",       a:"S37", b:"S09"}, // podwójne ton-w-ton vs pojedyncze ozdobne
+  {p:"N12", axis:"brand",        a:"S13", b:"S30"}, // pojedyncze cienkie ramiączka, arena vs Jolyn
 ];
-const FILLER_W2 = new Set(["S32","S33","S15"]);             // double weight in filler draw
-const FILLER_W0 = new Set(["S28","S30","S31","S14","S25","S04","S12"]); // weight zero — already in a targeted pair every session
+const FILLER_W2 = new Set(["S32","S33"]);             // double weight in filler draw
+const FILLER_W0 = new Set(["S14","S25","S28","S30","S04","S09","S13","S15"]); // weight zero — already in a targeted pair every session
 /* ========================================== */
 
 /* ---- i18n ---- */
@@ -733,13 +736,13 @@ function hasImg(id){ return !!(BYID[id] && BYID[id].img); }
 function pairActive(pr){ return !pr.off && hasImg(pr.a) && hasImg(pr.b); }
 const ACTIVE_CORE = CORE.filter(pairActive);
 const ACTIVE_ROT  = ROTATION.filter(pairActive);
-const ROT_PICK = Math.min(7, ACTIVE_ROT.length);
+const ROT_PICK = Math.min(9, ACTIVE_ROT.length);
 const FILLERS = 2;                                   // one warm-up filler (pos 1) + one in the body
 const TOTAL = ACTIVE_CORE.length + ROT_PICK + FILLERS; // 4 + 4 + 2 = 10 duels
 /* every defined targeted matchup (active or not) is barred from fillers */
 const TARGETED = new Set([...CORE, ...ROTATION].map(pr=>pairKey(pr.a,pr.b)));
 /* weighted pool for filler draws: non-tech roster suits, listed twice if boosted */
-const FILLER_POOL = (()=>{ const p=[]; SUITS.forEach(s=>{ if(s.tech||!s.img||FILLER_W0.has(s.id)) return; p.push(s.id); if(FILLER_W2.has(s.id)) p.push(s.id); }); return p; })();
+const FILLER_POOL = (()=>{ const p=[]; SUITS.forEach(s=>{ if(s.tech||s.retired||!s.img||FILLER_W0.has(s.id)) return; p.push(s.id); if(FILLER_W2.has(s.id)) p.push(s.id); }); return p; })();
 
 /* muted, low-saturation placeholder tint — keeps suits distinguishable without shouting */
 function phBg(i){const h=HUES[i%HUES.length];return `linear-gradient(160deg,hsl(${h} 30% 95%),hsl(${h} 32% 88%))`}
@@ -796,7 +799,7 @@ function renderLanes(){
 }
 function renderFan(){
   const f=document.getElementById('fan'); f.innerHTML="";
-  SUITS.slice(0,5).forEach((s,i)=>{
+  SUITS.filter(s=>s.img&&!s.tech&&!s.retired).slice(0,5).forEach((s,i)=>{
     const m=document.createElement('div'); m.className='mini';
     m.innerHTML = s.img?`<img src="${s.img}" alt="">`
       :`<div class="ph" style="background:${phBg(i)}">${s.id}</div>`;
@@ -854,7 +857,7 @@ function pick(slot){
   pickTimes.push(ms);
   wins[winner]=(wins[winner]||0)+1; seen.add(winner); seen.add(loser);
   idx++; lastDuelIdx=idx;
-  if(idx===1||idx===6||idx===TOTAL) funnel("duel", idx); // sampled checkpoints: start, mid, last (config-driven)
+  if(idx===1||idx===7||idx===TOTAL) funnel("duel", idx); // sampled checkpoints: start, mid, last (config-driven)
   if(idx<seq.length){ renderDuel(); }
   else {
     renderLanes();
@@ -864,11 +867,12 @@ function pick(slot){
 }
 /* finale — session winners only (no tech), max 6, padded to >=4 with other suits seen */
 function renderFinale(){
-  let winners = shuffle(Object.keys(wins).filter(id=>!BYID[id].tech)); // shuffle first so ties break at random
-  winners.sort((a,b)=> wins[b]-wins[a]);                               // stable sort keeps random order within ties
+  const finaleOK = id => !BYID[id].noFinale && !BYID[id].retired; // S37 allowed; S35/S36 + retired never
+  let winners = shuffle(Object.keys(wins).filter(finaleOK)); // shuffle first so ties break at random
+  winners.sort((a,b)=> wins[b]-wins[a]);                     // stable sort keeps random order within ties
   let opts = winners.slice(0,6);
   if(opts.length<4){
-    const pad = shuffle([...seen].filter(id=>!BYID[id].tech && opts.indexOf(id)<0));
+    const pad = shuffle([...seen].filter(id=>finaleOK(id) && opts.indexOf(id)<0));
     while(opts.length<4 && pad.length) opts.push(pad.shift());
   }
   opts = shuffle(opts);
