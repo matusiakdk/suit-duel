@@ -204,7 +204,7 @@
 <script>
 /* ---- entry params (both optional), captured on load ---- */
 const QS = new URLSearchParams(location.search);
-const SRC = QS.get('src') || '';
+const SRC = QS.get('src') || 'direct';
 const URL_EMAIL = (QS.get('email') || '').trim();
 const VID = Math.random().toString(36).slice(2,10);
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw6eJeG_DQzB3VR_kbfofl8jccoRD2sCCh9ii2qFxjMdaaW2zR1sYuxcHomWygrHTh/exec";
@@ -261,6 +261,7 @@ document.getElementById('thisOne').addEventListener('click', ()=>{
   if(voted) return; voted=true;
   post({sheet:"picker", type:"vote", straps:state.straps, top:state.top, bottom:state.bottom,
         src:SRC, email:URL_EMAIL, frequency:"", vid:VID, start:START});
+  try{ localStorage.setItem('picker_voted', VID); }catch(e){} // one vote per person, persisted across refresh
   document.getElementById('controls').hidden = true; // one vote per session
   document.body.classList.add('voted');
   document.getElementById('end').hidden = false;
@@ -292,6 +293,21 @@ document.getElementById('sendBtn').addEventListener('click', ()=>{
 });
 
 render();
+
+/* returning voter: ?reset=1 clears the lock (for testing); otherwise a stored
+   picker_voted means this person already voted -> show the thank-you only */
+try{ if(QS.get('reset')==='1') localStorage.removeItem('picker_voted'); }catch(e){}
+let alreadyVoted=false; try{ alreadyVoted = !!localStorage.getItem('picker_voted'); }catch(e){}
+if(alreadyVoted){
+  voted = true;
+  document.getElementById('controls').hidden = true;
+  document.body.classList.add('voted');
+  document.getElementById('end').hidden = false;
+  document.getElementById('endFreq').hidden = true;
+  const t = document.getElementById('endThanks');
+  t.textContent = "Thanks. Result in the next update.";
+  t.hidden = false;
+}
 </script>
 </body>
 </html>
