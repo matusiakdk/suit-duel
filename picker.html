@@ -10,9 +10,9 @@
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   ============================================================
-  SUIT PICKER — build your suit (straps / top / bottom).
-  Standalone page; no logging, no URL params (that's the next step).
-  index.html and the backend are untouched.
+  SUIT PICKER — build your suit (straps / top / bottom), cast one vote.
+  Logs to the SAME Apps Script endpoint as Suit Duel, but to its own
+  "picker" sheet tab. index.html and the Suit Duel backend logic are untouched.
   ============================================================
 -->
 <style>
@@ -44,25 +44,24 @@
   }
   .wrap{
     width:100%;max-width:520px;margin:0 auto;height:100dvh;
-    display:flex;flex-direction:column;justify-content:center;gap:4px;
+    display:flex;flex-direction:column;justify-content:center;gap:10px;
     padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
   }
 
-  /* image card hugs the landscape photo; capped so controls always fit (no scroll) */
   .shot{
     width:100%;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(28,29,33,.08);
-    display:flex;align-items:center;justify-content:center;max-height:52dvh;
+    display:flex;align-items:center;justify-content:center;max-height:52dvh;transition:max-height .25s ease;
   }
-  .shot img{width:100%;height:auto;max-height:52dvh;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}
+  .shot img{width:100%;height:auto;max-height:52dvh;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;transition:max-height .25s ease}
+  body.voted .shot, body.voted .shot img{max-height:40dvh} /* give the end panel room */
 
   /* three attribute rows */
-  .rows{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+  .rows{display:flex;flex-direction:column;gap:10px}
   .row{
     display:flex;align-items:center;gap:10px;
     background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:8px 8px;box-shadow:0 1px 2px rgba(0,0,0,.04);
-    touch-action:pan-y; /* allow our horizontal swipe handling */
+    padding:8px;box-shadow:0 1px 2px rgba(0,0,0,.04);touch-action:pan-y;
   }
   .arrow{
     flex:0 0 auto;width:44px;height:44px;border-radius:10px;border:0;background:transparent;
@@ -76,61 +75,117 @@
   .mid .val{font-size:16px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-top:2px}
 
   .cta{
-    margin-top:12px;width:100%;padding:15px;border:0;border-radius:12px;
+    width:100%;padding:15px;border:0;border-radius:12px;
     background:var(--accent);color:#fff;font-family:inherit;font-weight:600;font-size:16px;letter-spacing:-.01em;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 10px 30px rgba(8,102,255,.25);
     cursor:pointer;transition:transform .12s ease,filter .15s ease;
   }
   .cta:active{transform:scale(.985)}
   @media (hover:hover){.cta:hover{filter:brightness(1.06)}}
-  .picked{margin-top:10px;text-align:center;font-size:14px;font-weight:500;color:var(--ink);min-height:18px}
+
+  /* end panel (after the vote) */
+  #end[hidden]{display:none}
+  .thanks{text-align:center;font-size:18px;font-weight:600;color:var(--ink);padding:10px 0}
+  .q{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-align:center;margin-bottom:10px}
+  .freq{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .freq button{
+    font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);
+    padding:10px 14px;border-radius:999px;border:1px solid var(--line-strong);background:var(--card);
+    cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease;
+  }
+  .freq button.sel{border-color:var(--accent);background:rgba(8,102,255,.08);color:#0B57D0}
+  .emailAsk{margin-top:14px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.45}
+  .emailRow{display:flex;gap:8px;margin-top:8px}
+  .emailRow input{
+    flex:1;min-width:0;font-family:inherit;font-size:15px;color:var(--ink);
+    padding:12px 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--card);
+  }
+  .emailRow input::placeholder{color:var(--ink3,#A2A6AD)}
+  .emailRow button{
+    flex:0 0 auto;font-family:inherit;font-weight:600;font-size:15px;color:#fff;background:var(--accent);
+    border:0;border-radius:12px;padding:0 18px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  }
+  .emailRow button:active{transform:scale(.985)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="shot"><img id="shot" src="picker/s1-0k-h.jpg" alt="" draggable="false"></div>
 
-  <div class="rows" id="rows">
-    <div class="row" data-k="straps">
-      <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="mid"><div class="cat">Straps</div><div class="val" id="v-straps"></div></div>
-      <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <!-- builder (hidden once the vote is cast) -->
+  <div id="controls">
+    <div class="rows" id="rows">
+      <div class="row" data-k="straps">
+        <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="mid"><div class="cat">Straps</div><div class="val" id="v-straps"></div></div>
+        <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="row" data-k="top">
+        <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="mid"><div class="cat">Top</div><div class="val" id="v-top"></div></div>
+        <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="row" data-k="bottom">
+        <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="mid"><div class="cat">Bottom</div><div class="val" id="v-bottom"></div></div>
+        <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
     </div>
-    <div class="row" data-k="top">
-      <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="mid"><div class="cat">Top</div><div class="val" id="v-top"></div></div>
-      <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-    </div>
-    <div class="row" data-k="bottom">
-      <button class="arrow" data-dir="-1" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="mid"><div class="cat">Bottom</div><div class="val" id="v-bottom"></div></div>
-      <button class="arrow" data-dir="1" aria-label="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-    </div>
+    <button class="cta" id="thisOne" type="button" style="margin-top:10px">This one</button>
   </div>
 
-  <button class="cta" id="thisOne" type="button">This one</button>
-  <div class="picked" id="picked"></div>
+  <!-- end panel -->
+  <div id="end" hidden>
+    <div class="thanks" id="endThanks" hidden></div>
+    <div id="endFreq" hidden>
+      <div class="q">How often do you swim?</div>
+      <div class="freq" id="freqBtns">
+        <button type="button" data-f="1-2">1-2</button>
+        <button type="button" data-f="3-5">3-5</button>
+        <button type="button" data-f="6+">6+ a week</button>
+        <button type="button" data-f="coach">I coach</button>
+        <button type="button" data-f="none">I don't</button>
+      </div>
+      <div class="emailAsk">Want a chance to test the sample? Leave your email.</div>
+      <div class="emailRow">
+        <input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
+        <button type="button" id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
+/* ---- entry params (both optional), captured on load ---- */
+const QS = new URLSearchParams(location.search);
+const SRC = QS.get('src') || '';
+const URL_EMAIL = (QS.get('email') || '').trim();
+const VID = Math.random().toString(36).slice(2,10); // links the vote row to the later freq/email update
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw6eJeG_DQzB3VR_kbfofl8jccoRD2sCCh9ii2qFxjMdaaW2zR1sYuxcHomWygrHTh/exec";
+
 /* ---- options + human labels ---- */
-const OPT = {
-  straps: ["s1","s2","s3","s4"],
-  top:    ["0k","k"],
-  bottom: ["h","l","lk"]
-};
+const OPT = { straps:["s1","s2","s3","s4"], top:["0k","k"], bottom:["h","l","lk"] };
 const LABEL = {
-  straps: {s1:"Double U", s2:"Single", s3:"Double cross", s4:"Double, knot"},
-  top:    {"0k":"No cut-out", k:"Side cut-out"},
-  bottom: {h:"High leg", l:"Low leg", lk:"Low leg, hip cut-out"}
+  straps:{s1:"Double U", s2:"Single", s3:"Double cross", s4:"Double, knot"},
+  top:{"0k":"No cut-out", k:"Side cut-out"},
+  bottom:{h:"High leg", l:"Low leg", lk:"Low leg, hip cut-out"}
 };
 const state = {straps:"s1", top:"0k", bottom:"h"};
+let voted = false;
 
 /* ---- preload all 24 so switching never shows a load ---- */
-const cache = {};
 for(const a of OPT.straps) for(const b of OPT.top) for(const c of OPT.bottom){
-  const src = `picker/${a}-${b}-${c}.jpg`;
-  const im = new Image(); im.src = src; cache[src] = im;
+  const im = new Image(); im.src = `picker/${a}-${b}-${c}.jpg`;
+}
+
+/* ---- unload-safe fire-and-forget POST (same pattern as Suit Duel) ---- */
+function post(payload){
+  const body = JSON.stringify(payload);
+  try{
+    let sent=false;
+    if(navigator.sendBeacon){ try{ sent=navigator.sendBeacon(SCRIPT_URL, body); }catch(e){} }
+    if(!sent) fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",keepalive:true,body:body}).catch(()=>{});
+  }catch(e){}
 }
 
 const shot = document.getElementById('shot');
@@ -141,9 +196,9 @@ function render(){
   shot.src = `picker/${state.straps}-${state.top}-${state.bottom}.jpg`; // cached -> instant
 }
 function cycle(k, dir){
+  if(voted) return;
   const arr = OPT[k]; const i = arr.indexOf(state[k]);
   state[k] = arr[(i + dir + arr.length) % arr.length];
-  document.getElementById('picked').textContent = ""; // choice changed -> clear old result
   render();
 }
 
@@ -152,22 +207,53 @@ document.getElementById('rows').addEventListener('click', e=>{
   const btn = e.target.closest('.arrow'); if(!btn) return;
   cycle(btn.closest('.row').dataset.k, +btn.dataset.dir);
 });
-/* horizontal swipe on a row = that row's arrow */
+/* horizontal swipe on a row = that row's arrow (swipe left = next) */
 document.querySelectorAll('.row').forEach(row=>{
   let x0=null, y0=null;
   row.addEventListener('touchstart', e=>{ x0=e.touches[0].clientX; y0=e.touches[0].clientY; }, {passive:true});
   row.addEventListener('touchend', e=>{
     if(x0===null) return;
     const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
-    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) cycle(row.dataset.k, dx<0?1:-1); // swipe left = next
+    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) cycle(row.dataset.k, dx<0?1:-1);
     x0=y0=null;
   }, {passive:true});
 });
 
-/* "This one" — for now just show the chosen combination (no logging, no params yet) */
+/* ---- "This one": cast the vote immediately, then show the end screen ---- */
 document.getElementById('thisOne').addEventListener('click', ()=>{
-  document.getElementById('picked').textContent =
-    `${LABEL.straps[state.straps]} / ${LABEL.top[state.top]} / ${LABEL.bottom[state.bottom]}`;
+  if(voted) return; voted=true;
+  // vote row — code values, not labels
+  post({sheet:"picker", type:"vote", straps:state.straps, top:state.top, bottom:state.bottom,
+        src:SRC, email:URL_EMAIL, frequency:"", vid:VID});
+  document.getElementById('controls').hidden = true; // one vote per session
+  document.body.classList.add('voted');
+  const end = document.getElementById('end'); end.hidden = false;
+  if(URL_EMAIL){
+    // email already known -> short thank-you only
+    const t = document.getElementById('endThanks');
+    t.textContent = "Thanks. Result in the next update.";
+    t.hidden = false;
+  }else{
+    document.getElementById('endFreq').hidden = false;
+  }
+});
+
+/* frequency buttons — each tap saves to the SAME row straight away */
+document.getElementById('freqBtns').addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  [...btn.parentNode.children].forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  post({sheet:"picker", type:"update", vid:VID, frequency:btn.dataset.f});
+});
+
+/* optional email + Send -> update the same row, then final thanks */
+document.getElementById('sendBtn').addEventListener('click', ()=>{
+  const email = document.getElementById('emailIn').value.trim();
+  if(email) post({sheet:"picker", type:"update", vid:VID, email:email});
+  document.getElementById('endFreq').hidden = true;
+  const t = document.getElementById('endThanks');
+  t.textContent = "Thanks.";
+  t.hidden = false;
 });
 
 render();
