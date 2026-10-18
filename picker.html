@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#F7F8F9">
+<meta name="theme-color" content="#D0CAC6">
 <meta name="robots" content="noindex">
 <title>Suit Picker</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩱</text></svg>">
 <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   ============================================================
-  SUIT PICKER — build your suit (straps / top / bottom) as tiles, cast one vote.
+  SUIT PICKER — build your suit (straps / top / bottom) as chips, cast one vote.
+  Page background = the photo's studio colour, so the model floats seamlessly.
   Logs to the SAME Apps Script endpoint as Suit Duel, its own "picker" tab.
   index.html and the Suit Duel backend logic are untouched.
   ============================================================
@@ -28,156 +29,171 @@
   }
   :root{
     color-scheme:light;
-    --bg:#F7F8F9; --card:#FFFFFF; --ink:#1C1D21; --ink2:#6B6F76; --ink3:#A2A6AD;
-    --line:rgba(0,0,0,.08); --line-strong:rgba(0,0,0,.16); --accent:#0866FF;
+    --bg:#D0CAC6;           /* sampled from the photo's studio background */
+    --ink:#14130F;          /* near-black, warm — reads crisp on the greige */
+    --ink2:rgba(20,19,15,.66); /* secondary text, legible on greige (WCAG ~4.5:1) */
+    --chip:rgba(20,19,15,.74); /* unselected chip text — clearly readable */
+    --chip-line:rgba(20,19,15,.28);
+    --chip-line-hover:rgba(20,19,15,.52);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{height:100%;touch-action:manipulation}
   body{
-    background:
-      radial-gradient(640px 420px at 50% -60px, rgba(8,102,255,.05), transparent 70%),
-      var(--bg);
-    color:var(--ink);
+    background:var(--bg);color:var(--ink);
     font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
     overflow:hidden; /* phone: one screen, no scroll */
   }
   .wrap{
-    width:100%;max-width:520px;margin:0 auto;height:100dvh;
-    display:flex;flex-direction:column;justify-content:center;gap:8px;
-    padding:calc(8px + env(safe-area-inset-top)) 16px calc(10px + env(safe-area-inset-bottom));
+    width:100%;height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:14px;
+    padding:calc(10px + env(safe-area-inset-top)) 18px calc(12px + env(safe-area-inset-bottom));
   }
 
-  .head{margin-bottom:0}
-  .head h1{font-size:19px;font-weight:650;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
-  .head .sub{font-size:13px;line-height:1.4;color:var(--ink2);margin-top:4px}
-
-  .shot{
-    width:100%;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);
-    box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(28,29,33,.08);
-    display:flex;align-items:center;justify-content:center;max-height:44dvh;transition:max-height .25s ease;
+  /* photo — no card, no shadow, no border; gentle rounding; blends into the page */
+  .shot{display:flex;align-items:center;justify-content:center}
+  .shot img{
+    width:100%;height:auto;max-height:42dvh;object-fit:contain;display:block;border-radius:12px;
+    user-select:none;-webkit-user-drag:none;transition:max-height .25s ease;
   }
-  .shot img{width:100%;height:auto;max-height:44dvh;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;transition:max-height .25s ease}
-  body.voted .shot, body.voted .shot img{max-height:38dvh}
+  body.voted .shot img{max-height:36dvh}
 
-  /* attribute groups as tiles */
-  .groups{display:flex;flex-direction:column;gap:8px}
-  .group .glabel{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:5px}
-  .tiles{display:flex;gap:8px}
-  .tiles.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .tile{
-    flex:1;min-width:0;min-height:42px;padding:7px 6px;border-radius:11px;
-    border:1px solid var(--line-strong);background:var(--card);color:var(--ink);
-    font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.01em;line-height:1.12;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;
-    transition:background .12s ease,color .12s ease,border-color .12s ease,transform .1s ease;
+  .side{display:flex;flex-direction:column}
+  .head h1{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
+  .head .sub{
+    font-size:14px;line-height:1.4;color:var(--ink2);margin-top:5px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; /* max 2 lines */
   }
-  .tile:active{transform:scale(.97)}
-  .tile.active{background:#111;color:#fff;border-color:#111}
 
+  /* attribute groups as wrapping chips */
+  .group{margin-top:20px}
+  .group .glabel{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    height:36px;padding:0 14px;border-radius:999px;background:transparent;
+    border:1px solid var(--chip-line);color:var(--chip);
+    font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap;
+    transition:border-color .12s ease,color .12s ease,transform .1s ease;
+  }
+  .chip:active{transform:scale(.97)}
+  @media (hover:hover){.chip:hover{border-color:var(--chip-line-hover)}}
+  .chip.active{border:1.5px solid #14130F;color:#14130F;font-weight:600}
+
+  /* the only filled element */
   .cta{
-    width:100%;padding:14px;border:0;border-radius:12px;
-    background:#111;color:#fff;font-family:inherit;font-weight:600;font-size:16px;letter-spacing:-.01em;
-    box-shadow:0 1px 2px rgba(0,0,0,.12);
-    cursor:pointer;transition:transform .12s ease,filter .15s ease;margin-top:4px;
+    margin-top:28px;width:100%;height:48px;border:0;border-radius:999px;
+    background:#14130F;color:#fff;font-family:inherit;font-weight:600;font-size:16px;letter-spacing:-.01em;
+    cursor:pointer;transition:transform .12s ease,filter .15s ease;
   }
   .cta:active{transform:scale(.985)}
   @media (hover:hover){.cta:hover{filter:brightness(1.3)}}
 
-  /* end panel */
+  /* end panel — lives in the control column; photo stays visible */
   #end[hidden]{display:none}
-  .thanks{text-align:center;font-size:18px;font-weight:600;color:var(--ink);padding:10px 0}
-  .q{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-align:center;margin-bottom:10px}
-  .freq{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  #end{margin-top:22px}
+  .thanks{font-size:17px;font-weight:600;color:var(--ink);line-height:1.35}
+  .q{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:10px}
+  .freq{display:flex;flex-wrap:wrap;gap:8px}
   .freq button{
-    font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);
-    padding:10px 14px;border-radius:999px;border:1px solid var(--line-strong);background:var(--card);
-    cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease;
+    height:36px;padding:0 14px;border-radius:999px;background:transparent;
+    border:1px solid var(--chip-line);color:var(--chip);
+    font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;
+    display:inline-flex;align-items:center;transition:border-color .12s ease,color .12s ease;
   }
-  .freq button.sel{border-color:#111;background:#111;color:#fff}
-  .emailAsk{margin-top:14px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.45}
+  @media (hover:hover){.freq button:hover{border-color:var(--chip-line-hover)}}
+  .freq button.sel{border:1.5px solid #14130F;color:#14130F;font-weight:600}
+  .emailAsk{margin-top:16px;font-size:13px;color:var(--ink2);line-height:1.45}
   .emailRow{display:flex;gap:8px;margin-top:8px}
   .emailRow input{
-    flex:1;min-width:0;font-family:inherit;font-size:15px;color:var(--ink);
-    padding:12px 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--card);
+    flex:1;min-width:0;font-family:inherit;font-size:15px;color:var(--ink);height:44px;
+    padding:0 14px;border-radius:12px;border:1px solid var(--chip-line);background:rgba(255,255,255,.4);
   }
-  .emailRow input::placeholder{color:var(--ink3)}
+  .emailRow input::placeholder{color:rgba(0,0,0,.4)}
   .emailRow button{
-    flex:0 0 auto;font-family:inherit;font-weight:600;font-size:15px;color:#fff;background:#111;
-    border:0;border-radius:12px;padding:0 18px;cursor:pointer;
+    flex:0 0 auto;font-family:inherit;font-weight:600;font-size:15px;color:#fff;background:#14130F;
+    border:0;border-radius:12px;padding:0 18px;cursor:pointer;height:44px;
   }
   .emailRow button:active{transform:scale(.985)}
 
-  /* desktop: image >= 60% of window height; rest in a column as wide as the image */
-  @media (min-width:700px){
-    html,body{overflow:auto} /* keep the big image; scroll if the window is short (phone stays no-scroll) */
+  /* phone: tighten so the shortest phones (iPhone SE) still fit with no scroll */
+  @media (max-width:799px){
+    .group{margin-top:16px}
+    .cta{margin-top:20px}
+    .shot img{max-height:40dvh}
+  }
+
+  /* desktop: two columns — photo left (up to 80% window height, as large as fits
+     without pushing the control column off-screen), fixed 340px column right, centred */
+  @media (min-width:800px){
+    html,body{overflow:auto}
     .wrap{
-      width:min(109vh, 92vw);max-width:none;height:auto;min-height:100dvh;
-      justify-content:flex-start;gap:14px;padding:28px 0;
+      flex-direction:row;align-items:center;justify-content:center;gap:48px;
+      height:auto;min-height:100dvh;padding:32px;
     }
-    .shot,.shot img,body.voted .shot,body.voted .shot img{max-height:none}
-    .shot img{width:100%;height:auto} /* height = width / 1.79 ≈ 60vh when width = 109vh */
-    .head h1{font-size:24px}
-    .head .sub{font-size:15px}
-    .tile{min-height:48px;font-size:15px}
+    .shot{flex:0 1 auto;min-width:0}
+    .shot img{max-height:80vh;max-width:calc(100vw - 452px);width:auto;height:auto} /* 340 col + 48 gap + 64 padding */
+    .side{flex:0 0 340px;width:340px}
+    .head{margin-bottom:4px}
+    .group:first-child{margin-top:16px}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="head">
-    <h1>Build the suit you'd train in.</h1>
-    <p class="sub">Pick straps, top and bottom. Then choose the one you'd actually wear twice a day.</p>
-  </div>
   <div class="shot"><img id="shot" src="picker/s1-0k-h.jpg" alt="" draggable="false"></div>
 
-  <!-- builder (hidden once the vote is cast) -->
-  <div id="controls">
-    <div class="groups">
+  <div class="side">
+    <div class="head">
+      <h1>Build the suit you'd train in.</h1>
+      <p class="sub">Pick straps, top and bottom. Then choose the one you'd actually wear twice a day.</p>
+    </div>
+
+    <!-- builder (hidden once the vote is cast) -->
+    <div id="controls">
       <div class="group" data-k="straps">
         <div class="glabel">Straps</div>
-        <div class="tiles grid2">
-          <button class="tile" type="button" data-v="s1">Double U</button>
-          <button class="tile" type="button" data-v="s2">Single</button>
-          <button class="tile" type="button" data-v="s3">Double cross</button>
-          <button class="tile" type="button" data-v="s4">Double, knot</button>
+        <div class="chips">
+          <button class="chip" type="button" data-v="s1">Double U</button>
+          <button class="chip" type="button" data-v="s2">Single</button>
+          <button class="chip" type="button" data-v="s3">Double cross</button>
+          <button class="chip" type="button" data-v="s4">Double, knot</button>
         </div>
       </div>
       <div class="group" data-k="top">
         <div class="glabel">Top</div>
-        <div class="tiles">
-          <button class="tile" type="button" data-v="0k">No cut-out</button>
-          <button class="tile" type="button" data-v="k">Side cut-out</button>
+        <div class="chips">
+          <button class="chip" type="button" data-v="0k">No cut-out</button>
+          <button class="chip" type="button" data-v="k">Side cut-out</button>
         </div>
       </div>
       <div class="group" data-k="bottom">
         <div class="glabel">Bottom</div>
-        <div class="tiles">
-          <button class="tile" type="button" data-v="h">High leg</button>
-          <button class="tile" type="button" data-v="l">Low leg</button>
-          <button class="tile" type="button" data-v="lk">Low leg + hip cut-out</button>
+        <div class="chips">
+          <button class="chip" type="button" data-v="h">High leg</button>
+          <button class="chip" type="button" data-v="l">Low leg</button>
+          <button class="chip" type="button" data-v="lk">Low leg + hip cut-out</button>
         </div>
       </div>
+      <button class="cta" id="thisOne" type="button">This one</button>
     </div>
-    <button class="cta" id="thisOne" type="button">This one</button>
-  </div>
 
-  <!-- end panel -->
-  <div id="end" hidden>
-    <div class="thanks" id="endThanks" hidden></div>
-    <div id="endFreq" hidden>
-      <div class="q">How often do you swim?</div>
-      <div class="freq" id="freqBtns">
-        <button type="button" data-f="1-2">1-2</button>
-        <button type="button" data-f="3-5">3-5</button>
-        <button type="button" data-f="6+">6+ a week</button>
-        <button type="button" data-f="coach">I coach</button>
-        <button type="button" data-f="none">I don't</button>
-      </div>
-      <div class="emailAsk">Want a chance to test the sample? Leave your email.</div>
-      <div class="emailRow">
-        <input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
-        <button type="button" id="sendBtn">Send</button>
+    <!-- end panel -->
+    <div id="end" hidden>
+      <div class="thanks" id="endThanks" hidden></div>
+      <div id="endFreq" hidden>
+        <div class="q">How often do you swim?</div>
+        <div class="freq" id="freqBtns">
+          <button type="button" data-f="1-2">1-2</button>
+          <button type="button" data-f="3-5">3-5</button>
+          <button type="button" data-f="6+">6+ a week</button>
+          <button type="button" data-f="coach">I coach</button>
+          <button type="button" data-f="none">I don't</button>
+        </div>
+        <div class="emailAsk">Want a chance to test the sample? Leave your email.</div>
+        <div class="emailRow">
+          <input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
+          <button type="button" id="sendBtn">Send</button>
+        </div>
       </div>
     </div>
   </div>
@@ -188,7 +204,7 @@
 const QS = new URLSearchParams(location.search);
 const SRC = QS.get('src') || '';
 const URL_EMAIL = (QS.get('email') || '').trim();
-const VID = Math.random().toString(36).slice(2,10); // links the vote row to the later freq/email update
+const VID = Math.random().toString(36).slice(2,10);
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw6eJeG_DQzB3VR_kbfofl8jccoRD2sCCh9ii2qFxjMdaaW2zR1sYuxcHomWygrHTh/exec";
 
 /* ---- options + human labels ---- */
@@ -224,16 +240,16 @@ const shot = document.getElementById('shot');
 function render(){
   document.querySelectorAll('.group').forEach(g=>{
     const k=g.dataset.k;
-    g.querySelectorAll('.tile').forEach(t=>t.classList.toggle('active', t.dataset.v===state[k]));
+    g.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.v===state[k]));
   });
   shot.src = `picker/${state.straps}-${state.top}-${state.bottom}.jpg`; // cached -> instant
 }
 
-/* tile taps set that attribute and swap the image */
-document.querySelectorAll('.group .tiles').forEach(tiles=>{
-  tiles.addEventListener('click', e=>{
-    const t = e.target.closest('.tile'); if(!t || voted) return;
-    state[tiles.closest('.group').dataset.k] = t.dataset.v;
+/* chip taps set that attribute and swap the image */
+document.querySelectorAll('.group .chips').forEach(chips=>{
+  chips.addEventListener('click', e=>{
+    const c = e.target.closest('.chip'); if(!c || voted) return;
+    state[chips.closest('.group').dataset.k] = c.dataset.v;
     render();
   });
 });
@@ -241,7 +257,6 @@ document.querySelectorAll('.group .tiles').forEach(tiles=>{
 /* ---- "This one": cast the vote immediately, then show the end screen ---- */
 document.getElementById('thisOne').addEventListener('click', ()=>{
   if(voted) return; voted=true;
-  // code values, not labels; `start` = the random initial combination
   post({sheet:"picker", type:"vote", straps:state.straps, top:state.top, bottom:state.bottom,
         src:SRC, email:URL_EMAIL, frequency:"", vid:VID, start:START});
   document.getElementById('controls').hidden = true; // one vote per session
