@@ -291,8 +291,11 @@ document.getElementById('thisOne').addEventListener('click', ()=>{
   document.getElementById('controls').hidden = true;
   document.body.classList.add('voted');
   document.getElementById('end').hidden = false;
-  document.getElementById('endFreq').hidden = false;              // frequency question: always, for everyone
-  if(URL_EMAIL) document.getElementById('emailBlock').hidden = true; // email field only when ?email= is absent
+  if(URL_EMAIL){
+    finishThanks("Thanks. Result in the next update.");  // email already known -> straight to thank-you, no questions
+  }else{
+    document.getElementById('endFreq').hidden = false;   // no email -> ask frequency, then optional email
+  }
 });
 
 /* frequency buttons — each tap saves to the SAME row straight away */
