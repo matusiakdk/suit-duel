@@ -63,6 +63,7 @@
     font-size:14px;line-height:1.4;color:var(--ink2);margin-top:5px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; /* max 2 lines */
   }
+  .head .note3{font-size:13px;line-height:1.4;color:var(--ink2);margin-top:5px}
 
   /* attribute groups as wrapping chips */
   .group{margin-top:20px}
@@ -94,6 +95,8 @@
   #end[hidden]{display:none}
   #end{margin-top:22px}
   .thanks{font-size:17px;font-weight:600;color:var(--ink);line-height:1.35}
+  .thanks #thanksText{display:block}
+  .seeLink{display:inline-block;margin-top:10px;font-size:13px;font-weight:500;color:var(--ink2);text-decoration:underline}
   .q{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:10px}
   .freq{display:flex;flex-wrap:wrap;gap:8px}
   .freq button{
@@ -121,8 +124,10 @@
 
   /* phone: tighten so the shortest phones (iPhone SE) still fit with no scroll */
   @media (max-width:799px){
-    .group{margin-top:16px}
-    .cta{margin-top:20px}
+    .wrap{gap:10px}
+    .group{margin-top:14px}
+    .cta{margin-top:16px}
+    .head .sub, .head .note3{margin-top:4px}
     .shot img{max-height:40dvh}
   }
 
@@ -150,6 +155,7 @@
     <div class="head">
       <h1>Build the suit you'd train in.</h1>
       <p class="sub">Pick straps, top and bottom. Then choose the one you'd actually wear twice a day.</p>
+      <p class="note3">Black for now. Colour comes later, once the cut is right.</p>
     </div>
 
     <!-- builder (hidden once the vote is cast) -->
@@ -183,7 +189,10 @@
 
     <!-- end panel -->
     <div id="end" hidden>
-      <div class="thanks" id="endThanks" hidden></div>
+      <div class="thanks" id="endThanks" hidden>
+        <span id="thanksText"></span>
+        <a class="seeLink" href="https://thechlorinelab.notion.site" target="_blank" rel="noopener">See how the test works →</a>
+      </div>
       <div id="endFreq" hidden>
         <div class="q">How often do you swim?</div>
         <div class="freq" id="freqBtns">
@@ -251,7 +260,8 @@ function sendVote(payload){
 function sendUpdate(payload){ voteDone.then(()=> post(payload)); }
 function finishThanks(text){
   document.getElementById('endFreq').hidden = true;
-  const t = document.getElementById('endThanks'); t.textContent = text; t.hidden = false;
+  document.getElementById('thanksText').textContent = text;   // keep the link beneath it
+  document.getElementById('endThanks').hidden = false;
 }
 
 const shot = document.getElementById('shot');
@@ -315,9 +325,8 @@ if(alreadyVoted){
   document.body.classList.add('voted');
   document.getElementById('end').hidden = false;
   document.getElementById('endFreq').hidden = true;
-  const t = document.getElementById('endThanks');
-  t.textContent = "Thanks. Result in the next update.";
-  t.hidden = false;
+  document.getElementById('thanksText').textContent = "Thanks. Result in the next update.";
+  document.getElementById('endThanks').hidden = false;
 }
 </script>
 </body>
