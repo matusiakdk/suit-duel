@@ -56,6 +56,7 @@
     user-select:none;-webkit-user-drag:none;transition:max-height .25s ease;
   }
   body.voted .shot img{max-height:36dvh}
+  body.voted .head{display:none} /* end screen: only the thank-you + link remain */
 
   .side{display:flex;flex-direction:column}
   .head h1{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
@@ -191,7 +192,7 @@
     <div id="end" hidden>
       <div class="thanks" id="endThanks" hidden>
         <span id="thanksText"></span>
-        <a class="seeLink" href="https://thechlorinelab.notion.site" target="_blank" rel="noopener">See how the test works →</a>
+        <a class="seeLink" href="https://thechlorinelab.notion.site/The-Chlorine-Lab-3f2b483b929f80ec98b6fcb56d1288de?source=copy_link" target="_blank" rel="noopener">See how the test works →</a>
       </div>
       <div id="endFreq" hidden>
         <div class="q">How often do you swim?</div>
