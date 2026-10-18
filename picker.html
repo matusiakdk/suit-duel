@@ -116,6 +116,8 @@
     border:0;border-radius:12px;padding:0 18px;cursor:pointer;height:44px;
   }
   .emailRow button:active{transform:scale(.985)}
+  #emailBlock[hidden]{display:none}
+  .emailRow input.invalid{border-color:#C0392B;box-shadow:0 0 0 2px rgba(192,57,43,.18)}
 
   /* phone: tighten so the shortest phones (iPhone SE) still fit with no scroll */
   @media (max-width:799px){
@@ -191,10 +193,12 @@
           <button type="button" data-f="coach">I coach</button>
           <button type="button" data-f="none">I don't</button>
         </div>
-        <div class="emailAsk">Want a chance to test the sample? Leave your email.</div>
-        <div class="emailRow">
-          <input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
-          <button type="button" id="sendBtn">Send</button>
+        <div id="emailBlock">
+          <div class="emailAsk">Want a chance to test the sample? Leave your email.</div>
+          <div class="emailRow">
+            <input id="emailIn" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com">
+            <button type="button" id="sendBtn">Send</button>
+          </div>
         </div>
       </div>
     </div>
@@ -237,6 +241,18 @@ function post(payload){
     if(!sent) fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",keepalive:true,body:body}).catch(()=>{});
   }catch(e){}
 }
+/* the vote goes out as a fetch; freq/email updates wait for it to finish so they
+   land on the same row (queued if the vote request is still in flight) */
+let voteDone = Promise.resolve();
+function sendVote(payload){
+  const body = JSON.stringify(payload);
+  voteDone = fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",keepalive:true,body:body}).catch(()=>{});
+}
+function sendUpdate(payload){ voteDone.then(()=> post(payload)); }
+function finishThanks(text){
+  document.getElementById('endFreq').hidden = true;
+  const t = document.getElementById('endThanks'); t.textContent = text; t.hidden = false;
+}
 
 const shot = document.getElementById('shot');
 function render(){
@@ -259,19 +275,14 @@ document.querySelectorAll('.group .chips').forEach(chips=>{
 /* ---- "This one": cast the vote immediately, then show the end screen ---- */
 document.getElementById('thisOne').addEventListener('click', ()=>{
   if(voted) return; voted=true;
-  post({sheet:"picker", type:"vote", straps:state.straps, top:state.top, bottom:state.bottom,
-        src:SRC, email:URL_EMAIL, frequency:"", vid:VID, start:START});
+  sendVote({sheet:"picker", type:"vote", straps:state.straps, top:state.top, bottom:state.bottom,
+            src:SRC, email:URL_EMAIL, frequency:"", vid:VID, start:START});
   try{ localStorage.setItem('picker_voted', VID); }catch(e){} // one vote per person, persisted across refresh
-  document.getElementById('controls').hidden = true; // one vote per session
+  document.getElementById('controls').hidden = true;
   document.body.classList.add('voted');
   document.getElementById('end').hidden = false;
-  if(URL_EMAIL){
-    const t = document.getElementById('endThanks');
-    t.textContent = "Thanks. Result in the next update.";
-    t.hidden = false;
-  }else{
-    document.getElementById('endFreq').hidden = false;
-  }
+  document.getElementById('endFreq').hidden = false;              // frequency question: always, for everyone
+  if(URL_EMAIL) document.getElementById('emailBlock').hidden = true; // email field only when ?email= is absent
 });
 
 /* frequency buttons — each tap saves to the SAME row straight away */
@@ -279,17 +290,17 @@ document.getElementById('freqBtns').addEventListener('click', e=>{
   const btn = e.target.closest('button'); if(!btn) return;
   [...btn.parentNode.children].forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
-  post({sheet:"picker", type:"update", vid:VID, frequency:btn.dataset.f});
+  sendUpdate({sheet:"picker", type:"update", vid:VID, frequency:btn.dataset.f});
+  if(URL_EMAIL) finishThanks("Thanks. Result in the next update."); // email already known -> done, no Send step
 });
 
-/* optional email + Send -> update the same row, then final thanks */
+/* optional email + Send (only when ?email= is absent) -> update the same row, then thanks */
 document.getElementById('sendBtn').addEventListener('click', ()=>{
-  const email = document.getElementById('emailIn').value.trim();
-  if(email) post({sheet:"picker", type:"update", vid:VID, email:email});
-  document.getElementById('endFreq').hidden = true;
-  const t = document.getElementById('endThanks');
-  t.textContent = "Thanks.";
-  t.hidden = false;
+  const inp = document.getElementById('emailIn'); const email = inp.value.trim();
+  if(!/.+@.+\..+/.test(email)){ inp.classList.add('invalid'); return; } // must have @ and a dot after it
+  inp.classList.remove('invalid');
+  sendUpdate({sheet:"picker", type:"update", vid:VID, email:email});
+  finishThanks("Thanks.");
 });
 
 render();
